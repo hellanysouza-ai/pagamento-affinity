@@ -974,7 +974,7 @@ function addManualI(){
   manualDataI.push({doc,nome,val,banco,ag,conta,poup,pix,obs});
   renderManualI();renderResumo();
   // Clear fields
-  ['m-doc','m-nome','m-val','m-banco','m-ag','m-conta','m-pix','m-obs'].forEach(id=>document.getElementById(id).value='');
+  ['m-doc-i','m-nome-i','m-val-i','m-banco-i','m-ag-i','m-conta-i','m-pix-i','m-obs-i'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('m-poup-i').value='';
   showMsg('✓ Lançamento adicionado.');
 }
