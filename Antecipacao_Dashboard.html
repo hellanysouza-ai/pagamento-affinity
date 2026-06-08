@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Affinity — Antecipação</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F3EFF8;--surface:#fff;--border:#DDD5E8;--border2:#C4B8D8;
+  --text:#2A1A3E;--muted:#7A6A92;
+  --purple:#5C2D6E;--gold:#C9A84C;--gold-light:#FBF4E0;
+  --green:#1D9E75;--green-light:#E1F5EE;
+  --blue:#185FA5;--blue-light:#E6F1FB;
+  --red:#A32D2D;--red-light:#FCEBEB;
+  --r:10px;--rl:16px;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+body{background:var(--bg);font-family:var(--font);color:var(--text);min-height:100vh}
+header{background:var(--purple);border-bottom:3px solid var(--gold);display:flex;align-items:stretch}
+.hbrand{padding:16px 28px;border-right:1px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;justify-content:center}
+.hbrand h1{font-size:18px;font-weight:400;font-style:italic;color:var(--gold);letter-spacing:.06em}
+.hbrand p{font-size:11px;opacity:.5;color:#fff;margin-top:2px;font-family:var(--mono)}
+.htabs{display:flex;align-items:flex-end;padding:0 24px}
+.tab{padding:18px 18px 14px;font-size:13px;font-weight:500;cursor:pointer;color:rgba(255,255,255,.5);border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap}
+.tab.on{color:#FBF4E0;border-bottom-color:var(--gold)}
+.tab:hover:not(.on){color:rgba(255,255,255,.8)}
+.hright{margin-left:auto;display:flex;align-items:center;padding:0 20px}
+.wbadge{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:5px 12px;font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.7)}
+main{max-width:1280px;margin:0 auto;padding:24px 28px}
+.panel{display:none}.panel.on{display:block}
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 20px}
+.card.gold{background:var(--gold-light);border-color:#E8D49A}
+.card.blue{background:var(--blue-light);border-color:#B5D4F4}
+.clabel{font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cval{font-size:22px;font-weight:300;font-family:var(--mono);letter-spacing:-.02em}
+.cval.gold{color:#A07828}.cval.blue{color:var(--blue)}.cval.purple{color:var(--purple)}
+.csub{font-size:11px;color:var(--muted);margin-top:3px}
+/* import */
+.ibox{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:16px}
+.ihead{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--bg)}
+.ititle{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;border-radius:50%}
+.ibody{padding:14px 18px}
+.icnt{font-family:var(--mono);font-size:11px;background:var(--border);border-radius:4px;padding:2px 8px;color:var(--muted)}
+textarea{width:100%;height:170px;border:1px solid var(--border);border-radius:var(--r);font-family:var(--mono);font-size:11.5px;color:var(--text);background:var(--bg);padding:10px 12px;resize:vertical;outline:none;line-height:1.6;transition:border-color .15s}
+textarea:focus{border-color:var(--gold)}
+.hint{font-size:11px;color:var(--muted);margin-top:5px}
+.info{margin-top:8px;padding:9px 12px;background:var(--gold-light);border:1px solid #E8D49A;border-radius:8px;font-size:12px;color:#7A5010;line-height:1.5}
+/* upload zone */
+.uzone{border:2px dashed var(--border2);border-radius:var(--rl);padding:22px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg)}
+.uzone:hover,.uzone.drag{border-color:var(--gold);background:var(--gold-light)}
+.uzone input{display:none}
+.uzone-title{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:3px}
+.uzone-sub{font-size:11px;color:var(--muted);opacity:.7}
+.ustatus{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-family:var(--mono);padding:4px 10px;border-radius:6px;background:var(--border);color:var(--muted)}
+.ustatus.ok{background:#EAF3DE;color:#3B6D11}
+/* btns */
+.btnrow{display:flex;gap:10px;margin-bottom:24px;align-items:center;flex-wrap:wrap}
+button{font-family:var(--font);cursor:pointer;border:none;border-radius:8px;font-size:13px;font-weight:500;transition:all .15s}
+.btn1{background:var(--gold);color:#2A1A3E;padding:10px 22px;font-weight:600;box-shadow:0 2px 8px rgba(201,168,76,.3)}
+.btn1:hover{background:#B8952E;transform:translateY(-1px)}
+.btn2{background:var(--surface);color:var(--text);padding:10px 18px;border:1px solid var(--border)}
+.btn2:hover{background:var(--bg)}
+.smsg{font-size:12px;font-family:var(--mono);padding:5px 10px;border-radius:6px;display:none}
+/* week */
+.wrow{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl)}
+.wrow label{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
+.wrow input{border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-family:var(--mono);font-size:13px;background:var(--bg);color:var(--text);outline:none;width:150px}
+.wrow input:focus{border-color:var(--blue)}
+/* table */
+.twrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden}
+.tbar{display:flex;align-items:center;gap:8px;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--bg);flex-wrap:wrap}
+.tbar-title{font-size:13px;font-weight:600}
+.chip{font-size:11px;font-weight:600;letter-spacing:.05em;padding:4px 11px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .12s}
+.chip.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+.chip.err{border-color:#F7C1C1;color:var(--red)}
+.chip.err.on{background:var(--red);color:#fff;border-color:var(--red)}
+.tbar input{border:1px solid var(--border);border-radius:7px;padding:6px 11px;font-size:12px;background:var(--surface);color:var(--text);outline:none;width:200px;margin-left:auto}
+.tbar input:focus{border-color:var(--blue)}
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{text-align:left;padding:9px 14px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--bg)}
+tbody tr{border-bottom:.5px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#F5F0FA}
+tbody tr.poupa{background:#FFFBF0}
+td{padding:9px 14px;vertical-align:middle;white-space:nowrap}
+td.doc{font-family:var(--mono);font-size:11px;color:var(--muted)}
+td.nome{font-weight:500;max-width:240px;overflow:hidden;text-overflow:ellipsis}
+td.val{font-family:var(--mono);text-align:right;font-size:12px}
+td.banco{font-family:var(--mono);font-size:11px}
+td.empty{text-align:center;padding:44px;color:var(--muted);font-size:13px}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10.5px;font-weight:600}
+.b-inovah{background:var(--gold-light);color:#7A5010}
+.b-nf{background:var(--blue-light);color:var(--blue)}
+.b-ok{background:#EAF3DE;color:#3B6D11;border:1px solid #C0DD97}
+.b-err{background:var(--red-light);color:var(--red);border:1px solid #F7C1C1;cursor:help}
+.b-sem{background:var(--blue-light);color:var(--blue);border:1px solid #B5D4F4}
+.b-men{background:#F2EAF8;color:var(--purple);border:1px solid #C4A8D8}
+.pager{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--border);background:var(--bg)}
+.pinfo{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.pbtns{display:flex;gap:6px}
+.pbtn{padding:4px 11px;font-size:12px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:var(--font)}
+.pbtn:disabled{opacity:.35;cursor:default}
+/* resumo */
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
+.rblock{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:20px 24px}
+.rhead{font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.rrows{}
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:.5px solid var(--border)}
+.rrow:last-child{border-bottom:none}
+.rl{font-size:12.5px;color:var(--muted);max-width:72%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rv{font-family:var(--mono);font-size:12.5px}
+.rtotal{padding-top:10px;margin-top:6px;border-top:1px solid var(--border2)!important}
+.rtotal .rl{color:var(--text);font-weight:600;font-size:13px}
+.rtotal .rv{font-size:14px;color:var(--purple);font-weight:600}
+.ebar{display:flex;gap:10px;flex-wrap:wrap}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--purple);color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:100;font-family:var(--mono)}
+.toast.show{opacity:1}
+.manual-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-top:20px}
+.manual-head{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--bg);border-bottom:1px solid var(--border)}
+.manual-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.manual-body{padding:16px 18px}
+.manual-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.manual-grid.wide{grid-template-columns:1fr 1fr 1fr 1fr}
+.mfield{display:flex;flex-direction:column;gap:4px}
+.mfield label{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mfield input{border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--mono);background:var(--bg);color:var(--text);outline:none;width:100%;transition:border-color .15s}
+.mfield input:focus{border-color:var(--gold)}
+.mfield select{border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font);background:var(--bg);color:var(--text);outline:none;width:100%}
+.manual-list{margin-top:16px}
+.manual-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:12px}
+.manual-item .mi-nome{flex:1;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.manual-item .mi-val{font-family:var(--mono);font-size:12px;white-space:nowrap}
+.manual-item .mi-doc{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap}
+.manual-item .mi-del{cursor:pointer;color:var(--red);font-size:16px;line-height:1;flex-shrink:0;padding:0 4px}
+.manual-item .mi-del:hover{opacity:.7}
+.manual-empty{text-align:center;padding:20px;color:var(--muted);font-size:12px}
+.badge-novo{background:var(--red-light);color:var(--red);border:1px solid #F7C1C1}
+.badge-estab{background:#EAF3DE;color:#3B6D11;border:1px solid #C0DD97}
+tr.novo-row{background:#FFF5F5!important}
+.stab{transition:all .15s}
+.stab.on{background:var(--purple)!important;color:#fff!important}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbrand"><h1>Affinity</h1><p>Antecipação — Controle de Pagamentos</p></div>
+  <div class="htabs">
+    <div class="tab on" onclick="goTab('import')">Importar Dados</div>
+    <div class="tab" onclick="goTab('conf')">Conferência</div>
+    <div class="tab" onclick="goTab('resumo')">Resumo</div>
+  </div>
+  <div class="hright"><div class="wbadge" id="wbadge">Semana —</div></div>
+</header>
+<main>
+
+<!-- IMPORTAR -->
+<div class="panel on" id="panel-import">
+  <div class="wrow">
+    <label>Semana de referência</label>
+    <input type="text" id="week-input" placeholder="Ex: 04/11/2024" oninput="setWeek(this.value)">
+    <span style="font-size:12px;color:var(--muted)">Data de corte da semana</span>
+  </div>
+
+  <div class="ibox">
+    <div class="ihead">
+      <div class="ititle"><span class="dot" style="background:var(--gold)"></span>Lista de Emissores de NF — Atualizar CSV</div>
+      <span class="ustatus" id="u-emissores-status">Faça upload do CSV de emissores de NF</span>
+    </div>
+    <div class="ibody">
+      <div class="uzone" onclick="document.getElementById('csv-inp').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="event.preventDefault();this.classList.remove('drag');handleCSV(event.dataTransfer.files[0])">
+        <input type="file" id="csv-inp" accept=".csv" onchange="handleCSV(this.files[0])">
+        <div class="uzone-title">📂 Arraste o CSV ou clique para selecionar</div>
+        <div class="uzone-sub">Exporte a planilha "CORRETORES QUE EMITEM NOTA FISCAL" como CSV toda segunda-feira</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ibox">
+    <div class="ihead">
+      <div class="ititle"><span class="dot" style="background:var(--red)"></span>Base de Corretores — Data de Inclusão</div>
+      <span class="ustatus" id="u-base-status">Faça upload para verificar corretores novos</span>
+    </div>
+    <div class="ibody">
+      <div class="uzone" onclick="document.getElementById('base-inp').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="event.preventDefault();this.classList.remove('drag');handleBase(event.dataTransfer.files[0])">
+        <input type="file" id="base-inp" accept=".csv,.xml" onchange="handleBase(this.files[0])">
+        <div class="uzone-title">📋 Arraste a Base de Corretores ou clique para selecionar</div>
+        <div class="uzone-sub">CSV ou XML exportado do sistema. Corretores com menos de 90 dias serão destacados em vermelho na aba Inovah.</div>
+      </div>
+      <div id="base-alert" style="display:none;margin-top:8px;padding:9px 12px;background:var(--red-light);border:1px solid #F7C1C1;border-radius:8px;font-size:12px;color:var(--red)">
+        🔴 <strong id="base-novos-count">0</strong> corretores Inovah com menos de 90 dias de inclusão
+      </div>
+    </div>
+  </div>
+
+  <div class="ibox">
+    <div class="ihead">
+      <div class="ititle"><span class="dot" style="background:#B85C20"></span>Recebimento do SIS</div>
+      <span class="icnt" id="cnt-rec">0 registros</span>
+    </div>
+    <div class="ibody">
+      <div class="uzone" onclick="document.getElementById('rec-inp').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="event.preventDefault();this.classList.remove('drag');handleRec(event.dataTransfer.files[0])">
+        <input type="file" id="rec-inp" onchange="handleRec(this.files[0])">
+        <div class="uzone-title">📊 COMISSÃO SIS — Arraste o CSV aqui</div>
+        <div class="uzone-sub">CSV exportado do sistema (separador ; ou tab) — leitura até coluna S (Cód Corretor)</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin:10px 0">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:11px;color:var(--muted)">ou cole manualmente</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <textarea id="txt-rec" placeholder="Cole aqui os dados do SIS (Ctrl+V direto do Excel)&#10;&#10;Colunas até S: Código · Status · Documento · Corretor · Valor Líquido · Titular · Banco · Agência · Dig.Ag · Conta · Dig.Conta · Tipo · Geração · Prev.Pagto · Pagamento · Assistente · ... · Valor Bruto · Cód Corretor" oninput="onPaste()" style="height:120px"></textarea>
+      <div class="info" style="margin-top:8px"><strong>Classificação automática:</strong> usa o Cód Corretor (col S) como chave principal para identificar NF, inclusão e frequência. Exportação do SIS em formato CSV (separado por ;). Quem estiver na lista de emissores → <strong style="color:var(--blue)">NF</strong>. Quem não estiver → <strong style="color:#7A5010">Inovah</strong>.</div>
+    </div>
+  </div>
+
+  <div class="btnrow">
+    <button class="btn1" onclick="processar()">▶ Processar e Classificar</button>
+    <button class="btn2" onclick="limpar()">Limpar tudo</button>
+    <span class="smsg" id="smsg"></span>
+  </div>
+
+  <div class="cards">
+    <div class="card gold"><div class="clabel">Total Inovah (c/ taxas)</div><div class="cval gold" id="s-inovah">R$ 0</div><div class="csub" id="q-inovah">0 corretores</div></div>
+    <div class="card blue"><div class="clabel">Total NF</div><div class="cval blue" id="s-nf">R$ 0</div><div class="csub" id="q-nf">0 corretores</div></div>
+    <div class="card"><div class="clabel">Total Geral</div><div class="cval" id="s-total">R$ 0</div><div class="csub" id="q-total">0 registros</div></div>
+    <div class="card"><div class="clabel">Status</div><div class="cval purple" id="s-status" style="font-size:15px;margin-top:4px">Aguardando</div><div class="csub" id="s-sub">Importe o Recebimento do SIS</div></div>
+  </div>
+</div>
+
+<!-- CONFERÊNCIA -->
+<div class="panel" id="panel-conf">
+  <!-- sub-tabs -->
+  <div style="display:flex;gap:0;margin-bottom:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden">
+    <div id="st-inovah" class="stab on" onclick="setSubTab('inovah')" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;cursor:pointer;border-right:1px solid var(--border);background:var(--gold-light);color:#7A5010">Inovah</div>
+    <div id="st-nf" class="stab" onclick="setSubTab('nf')" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted)">NF</div>
+  </div>
+
+  <!-- INOVAH TABLE -->
+  <div id="sub-inovah" class="twrap">
+    <div class="tbar">
+      <span class="tbar-title">Corretores Inovah</span>
+      <span class="chip err" id="chip-err-iv" onclick="toggleErrIv()">⚠ Com erro</span>
+      <span class="chip" id="chip-novo-iv" onclick="toggleNovoIv()" style="border-color:#F7C1C1;color:var(--red)">🔴 Novos (&lt;90d)</span>
+      <span class="chip" id="chip-poupa-iv" onclick="togglePoupaIv()" style="border-color:#E8D49A;color:#7A5010">Poupança</span>
+      <button class="btn2" onclick="exportInovah()" style="font-size:12px;padding:6px 14px">↓ Pagamento</button>
+      <button class="btn2" onclick="exportCSVInovah()" style="font-size:12px;padding:6px 14px">↓ CSV</button>
+      <input type="text" id="search-inovah" placeholder="Buscar..." oninput="renderInovah()">
+    </div>
+    <div class="tscroll">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Documento</th><th>Corretor</th>
+          <th style="text-align:right">Valor Líquido</th>
+          <th>Banco</th><th>Agência</th><th>Conta</th>
+          <th>Poupança</th><th>Inclusão</th><th style="text-align:center">Análise</th><th>Assistente</th>
+        </tr></thead>
+        <tbody id="tbody-inovah"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <span class="pinfo" id="pinfo-inovah">0 registros</span>
+      <div class="pbtns">
+        <button class="pbtn" id="pprev-inovah" onclick="prevPI()" disabled>← Anterior</button>
+        <button class="pbtn" id="pnext-inovah" onclick="nextPI()" disabled>Próxima →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MANUAL ENTRIES -->
+  <div class="manual-section" id="manual-section" style="display:block">
+    <div class="manual-head">
+      <div class="manual-title"><span class="dot" style="background:var(--gold)"></span>Lançamentos Manuais Inovah</div>
+      <span class="icnt" id="manual-count-i">0 lançamentos</span>
+    </div>
+    <div class="manual-body">
+      <div class="manual-grid wide">
+        <div class="mfield"><label>Documento (CPF/CNPJ)</label><input type="text" id="m-doc-i" placeholder="Ex: 12345678901"></div>
+        <div class="mfield"><label>Nome</label><input type="text" id="m-nome-i" placeholder="Nome completo"></div>
+        <div class="mfield"><label>Valor</label><input type="text" id="m-val-i" placeholder="Ex: 1500.00"></div>
+        <div class="mfield"><label>Banco</label><input type="text" id="m-banco-i" placeholder="Ex: 033"></div>
+      </div>
+      <div class="manual-grid wide">
+        <div class="mfield"><label>Agência com dígito</label><input type="text" id="m-ag-i" placeholder="Ex: 0436"></div>
+        <div class="mfield"><label>Conta com dígito</label><input type="text" id="m-conta-i" placeholder="Ex: 12345-6"></div>
+        <div class="mfield"><label>Conta Poupança</label>
+          <select id="m-poup-i"><option value="">Não</option><option value="SIM">Sim</option></select>
+        </div>
+        <div class="mfield"><label>Chave Pix (opcional)</label><input type="text" id="m-pix-i" placeholder="CPF, e-mail ou chave"></div>
+      </div>
+      <div class="mfield" style="margin-bottom:12px"><label>Observação (opcional)</label><input type="text" id="m-obs-i" placeholder="Observação para o pagamento"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn1" onclick="addManualI()" style="font-size:13px;padding:9px 20px">+ Adicionar</button>
+        <button class="btn2" onclick="exportManualInovah()" id="btn-export-manual-i" style="font-size:12px;padding:9px 16px;display:none">↓ Exportar Manuais — Pagamento</button>
+        <button class="btn2" onclick="clearManualI()" id="btn-clear-manual-i" style="font-size:12px;padding:9px 16px;display:none;color:var(--red);border-color:#F7C1C1">Limpar tudo</button>
+      </div>
+      <div class="manual-list" id="manual-list-i"><div class="manual-empty">Nenhum lançamento manual adicionado.</div></div>
+    </div>
+  </div>
+
+  <!-- MANUAL NF -->
+  <div class="manual-section" id="manual-section-n" style="display:none">
+    <div class="manual-head">
+      <div class="manual-title"><span class="dot" style="background:var(--blue)"></span>Lançamentos Manuais NF</div>
+      <span class="icnt" id="manual-count-n">0 lançamentos</span>
+    </div>
+    <div class="manual-body">
+      <div class="manual-grid wide">
+        <div class="mfield"><label>Documento (CPF/CNPJ)</label><input type="text" id="m-doc-n" placeholder="Ex: 12345678901"></div>
+        <div class="mfield"><label>Nome</label><input type="text" id="m-nome-n" placeholder="Nome completo"></div>
+        <div class="mfield"><label>Valor</label><input type="text" id="m-val-n" placeholder="Ex: 1500.00"></div>
+        <div class="mfield"><label>Banco</label><input type="text" id="m-banco-n" placeholder="Ex: 033"></div>
+      </div>
+      <div class="manual-grid wide">
+        <div class="mfield"><label>Agência com dígito</label><input type="text" id="m-ag-n" placeholder="Ex: 0436"></div>
+        <div class="mfield"><label>Conta com dígito</label><input type="text" id="m-conta-n" placeholder="Ex: 12345-6"></div>
+        <div class="mfield"><label>Frequência</label>
+          <select id="m-freq-n"><option value="">—</option><option value="SEMANAL">Semanal</option><option value="MENSAL">Mensal</option></select>
+        </div>
+        <div class="mfield"><label>Chave Pix (opcional)</label><input type="text" id="m-pix-n" placeholder="CPF, e-mail ou chave"></div>
+      </div>
+      <div class="mfield" style="margin-bottom:12px"><label>Observação (opcional)</label><input type="text" id="m-obs-n" placeholder="Observação para o pagamento"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn1" onclick="addManualN()" style="font-size:13px;padding:9px 20px;background:var(--blue);box-shadow:0 2px 8px rgba(24,95,165,.3)">+ Adicionar</button>
+        <button class="btn2" onclick="exportManualNF()" id="btn-export-manual-n" style="font-size:12px;padding:9px 16px;display:none">↓ Exportar Manuais NF</button>
+        <button class="btn2" onclick="clearManualN()" id="btn-clear-manual-n" style="font-size:12px;padding:9px 16px;display:none;color:var(--red);border-color:#F7C1C1">Limpar tudo</button>
+      </div>
+      <div class="manual-list" id="manual-list-n"><div class="manual-empty">Nenhum lançamento manual NF adicionado.</div></div>
+    </div>
+  </div>
+
+  <!-- NF TABLE -->
+  <div id="sub-nf" class="twrap" style="display:none">
+    <div class="tbar">
+      <span class="tbar-title">Corretores NF</span>
+      <button class="btn2" onclick="exportCSVNF()" style="font-size:12px;padding:6px 14px">↓ CSV</button>
+      <input type="text" id="search-nf" placeholder="Buscar..." oninput="renderNF()">
+    </div>
+    <div class="tscroll">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Documento</th><th>Corretor</th>
+          <th style="text-align:right">Valor Líquido</th>
+          <th>Banco</th><th>Agência</th><th>Conta</th>
+          <th>Frequência</th><th>Assistente</th>
+        </tr></thead>
+        <tbody id="tbody-nf"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <span class="pinfo" id="pinfo-nf">0 registros</span>
+      <div class="pbtns">
+        <button class="pbtn" id="pprev-nf" onclick="prevPN()" disabled>← Anterior</button>
+        <button class="pbtn" id="pnext-nf" onclick="nextPN()" disabled>Próxima →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESUMO -->
+<div class="panel" id="panel-resumo">
+  <div class="rgrid">
+    <div class="rblock">
+      <div class="rhead">Inovah — Via Sistema</div>
+      <div class="rrows" id="r-inovah"></div>
+    </div>
+    <div class="rblock">
+      <div class="rhead">NF — Notas Fiscais</div>
+      <div class="rrows" id="r-nf"></div>
+    </div>
+  </div>
+  <div class="rblock" style="margin-bottom:20px">
+    <div class="rhead">Resumo Financeiro</div>
+    <div class="rrow"><span class="rl">Σ Valores Líquidos Inovah (SIS)</span><span class="rv" id="r-liq">R$ 0,00</span></div>
+    <div class="rrow" id="r-manual-row" style="display:none"><span class="rl">Lançamentos Manuais</span><span class="rv" id="r-manual-total">R$ 0,00</span></div>
+    <div class="rrow"><span class="rl" id="r-liq-total-lbl">Σ Total Líquido</span><span class="rv" id="r-liq-total">R$ 0,00</span></div>
+    <div class="rrow"><span class="rl">Tarifa Adm (1% s/ total líquido)</span><span class="rv" id="r-adm">R$ 0,00</span></div>
+    <div class="rrow"><span class="rl" id="r-taxa-lbl">Taxa Bancária (0 × R$2,00)</span><span class="rv" id="r-taxa">R$ 0,00</span></div>
+    <div class="rrow rtotal"><span class="rl">Valor Pedido Inovah</span><span class="rv" id="r-inovah-total">R$ 0,00</span></div>
+    <div class="rrow" style="margin-top:8px"><span class="rl">Total NF</span><span class="rv" id="r-nf-total">R$ 0,00</span></div>
+    <div class="rrow rtotal"><span class="rl">TOTAL GERAL</span><span class="rv" id="r-geral">R$ 0,00</span></div>
+  </div>
+  <div class="ebar">
+    <button class="btn1" onclick="exportInovah()">↓ Exportar Inovah — Pagamento</button>
+    <button class="btn2" onclick="exportCSV()">↓ Exportar CSV Completo</button>
+    <button class="btn2" onclick="exportResumoHTML()">🖨 Exportar Resumo</button>
+    <button class="btn2" onclick="copiar()">Copiar Resumo</button>
+  </div>
+</div>
+
+</main>
+<div class="toast" id="toast">Copiado!</div>
+<script>
+let emittersMap={};
+let allData=[],filt='all',page=0,PER=50;
+
+function fmt(v){return'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtN(v){return Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function isPoupanca(r){
+  const t=(r.tipo||'').toUpperCase();
+  return t.includes('POUP')||t.includes('SAL')||t.includes('SIM');
+}
+// Lista interna de emissores NF (fallback quando CSV não carregado)
+const EMITTERS_BASE=new Set(["11PONTO11 CORRETORA DE SEGUROS & PROTECAO LTDA","2R'S CORRETORA E ADM DE SEGUROS LTDA","43.199.169 PRISCYLA DE ANDRADE FERREIRA","49.412.381 TAMARA INGRID DOS SANTOS","52.665.074 ANDRESSA MORALES BATISTA ROCHA","53.992.708 ANDERSON JANDOSA CORDEIRO","58.808.560 DAYANE ALESSANDRA SILVA MONTEIRO","59.111.274 SAMIRA RODRIGUES SANTOS","61.720.988 CASSIO BARRETO AMARO DE OLIVEIRA","A DA SILVA FERREIRA LIMITADA","ABDALA CORRETORA DE SEGUROS","ABN BRASIL CORRETORA DE SEGUROS LTDA","ABNER FERREIRA GONÇALVES","ABR E SIQ CORRETORA DE SEGUROS LTDA","ACCEND BROKERS LTDA","ACNWB CORRETORA DE SEGUROS EIRELI","ADALGISA BIANCHI (MARCELO)","ADALGISA BIANCHI DE SENA 50.249.712","ADELIZ NUNES","ADRIANA CAMPOAMOR CORRET DE SEG LTDA EPP","ADRIANA CIARINI","ADRIANO VARELA","AG SEGUROS GIANINI CORRETORA LTDA","AGILLE CONSULTORIA E CORRETORA DE SEGUROS LTDA","AGLAUPE ELIANE","AGNALDO OLIVEIRA DA MATA","AITAK CORRETORA DE SEGUROS LTDA","AJIC CORRETORA DE SEGUROS LTDA","AL BARBOSA CORRETORA DE SEGUROS LTDA","ALCIONE MENDES DO NASCIMENTO","ALESSANDRA BUSCARINO BARACHO","ALESSANDRA MONTEIRO","ALESSANDRA SILVA DOS SANTOS PEREIRA","ALEX ALEXANDRE MARQUES DOS SANTOS","ALEXANDRE ROBERTO VIEIRA","ALINE DE CASSIA FREITAS SANTOS","ALISSON RAFAEL SILVESTRE BORGES","ALL RISK CORRETORA DE SEGUROS E SERVICOS FINANCEIROS LTDA","ALVARO COR","ALVESP HOME CORRETORA DE SEGUROS LTDA","AMANDA E SILVA DE SOUZA","AMANDA PUZISKI","AMANDA SANTOS","AMANDA SOUZA","AMBIRES CORRETORA DE SEGUROS LTDA","ANA BEATRIZ","ANA BEATRIZ J DA SILVA","ANA CAROLINE DA COSTA PEREIRA","ANA CLARA PALÁCIO OLIVEIRA","ANA FLAVIA RODRIGUES","ANA FLÁVIA MACHADO","ANA MONTEIRO","ANA PAULA BASILIO","ANA RITA PINTO","ANDERSON SIMOES","ANDRADE SOLUCOES ADMINISTRATIVAS","ANDRE NOBREGA","ANDRE RAIMUNDO BATISTA CORRETAGEN DE SEGUROS LTDA","ANDREA LORENA ZELADA LAMILLA","ANDREA SANTOS DE MATOS","ANDRESSA OLIVEIRA PATRICIO","ANDRESSA PONTES DOS SANTOS","ANDRÉ DE SIQUEIRA BARRETO","ANGELA OLIVEIRA","ANGELA VALERIA BANDO PRESTACAO DE SERVICOS DE CORRETORE DE PLANO DE SAUDE","ANNA FREITAS","ANNA VOIG ADMINISTRADORA E CORRETORA DE SEGUROS LTDA","ANTONIO LUCAS SILVA BAZZI","AQUILA VINCERE CORRETORA DE SEGUROS LTDA","ARIANY SANTOS DE ANDRADE","ARIEL CORRETORA DE SEGUROS LTDA","ARON ADMINISTRADORA E CORRETORA DE SEGUROS LTDA","ARTHUR AUGUSTO LIRA DA SILVA","ASB ONLINE CORRETORA DE SEGUROS E PREVIDENCIA LTDA ME","ASENA ADMINISTRADORA E CORRETORA D ESEGUROS LTDA","ASTLA CORRETORA SEGUROS LTDA","AVALANCHE DE VENDAS UNIPESSOAL LTDA","AZSEG CORRETORA DE SEGUROS","BARBARA CAROLINE DOS SANTOS BARBOSA 07978744612","BARBARA SALES","BARRIONOVO CONSULTORIA EM SERVICOS DE CORRETAGEM LTDA","BAUER CORRETORA DE SEGUROS LTDA","BBK CORRETORA DE SEGUROS LTDA","BDV CONSULTORIA E CORRETAGEM DE SEGUROS LTDA","BEATRIZ CRISTINA","BEATRIZ DE CASTRO FALCAO DE SOUZA","BEATRIZ FRANÇA","BEATRIZ NASCIMENTO REZENDE","BEATRIZ PEREIRA NOLTE","BEATRIZ PONSO NOCELLI","BEATRIZ SANTOS","BEIBIANA MARQUES","BELGA ADMINISTRADORA E CORRETORA DE SEGUROS LTDA","BELLIATO CORRETORA DE SEGUROS LTDA.","BENE BROKERS CORR DE SEG CONS E SERV LTDA EPP","BENTECSEG CORRETORA E ADMINISTRADORA DE SEGUROS LTDA","BENVENUTO CORRETORA DE SEGUROS","BEPLUS SAÚDE CORRETORA DE SEGUROS LTDA","BERNARDETE R ADUKAS","BERNARDO GERMANO DE ANDRADE - CORRETORA DE SEGUROS","BIANCA FARIAS DOS SANTOS","BIANCA MARQUES NEPONUCENO","BKS CORRETORA DE SEGUROS LTDA","BM&X CONSULTORIA CORRETORA DE SEG EIRELLI","BOSCH E MONTENEGRO CORRETORA DE SEGUROS LTDA","BR PLUS ADMINISTRADORA E CORRETORA DE SEGUROS LTDA","BRACOSEG CORRETORA DE SEGUROS LTDA.","BRENDA MARIA ALVES DE MOURA","BRENDA SALDANHA","BRENDA SILVA","BRIDGE ADM E CORRET DE SEG","BRIDGE HEALTH","BRILLARE CORRETORA DE SEGUROS LTDA","BRITTO & TORRES CORRETORA DE SEGUROS LTDA","BRUNA APARECIDA NEVES","BRUNA GABRIELLE ALVES ANGELO","BRUNO LODUCA","BRUNO SANTOS","BT & T SERVICOS ADMINISTRATIVOS LTDA","BUENA VISTA CORRETORA DE SEGUROS LTDA","BUNKER BENEFÍCIOS CORRETORA DE SEGUROS LTDA","BWG CORRETORA DE SEGUROS E BENEFICIOS LTDA","C PRIME CORRETORA LTDA","C.B. RIBEIRO - CORRETORA DE SEGUROS","C10 CORRETORA DE SEGUROS LTDA","CAIO MARCELO C REGO CORRETAGEM DE SEGUROS DE VIDA ME","CALLI NEGOCIOS E INTERMEDIAÇOES LTDA","CAMILA ANDRADE FERNANDES VIDAL","CAMILA APARECIDA DE OLIVEIRA SILVA","CAMILA LOPES GONÇALVES","CAMILA PETRONIO","CAMILA SANTOS","CAMILA VIEIRA DA SILVA","CAMMINARE CONSULTORIA DE BENEFICIOS E CORRETORA DE SEGUROS LTDA","CAMPER CORRETORA DE SEGUROS LTDA","CARILLO PROCESSOS ADMINISTRATIVOS E CONTRATUAIS LTDA","CARINA DE OLIVEIRA LINS","CARLA LISBOA","CARLOS ASSIS","CARLOS EDUARDO PEREIRA DE SOUSA","CARLOS EDUARDO RODRIGUES DA COSTA","CAROLINA BARBOSA","CAROLINA PASQUINI","CAROLINE VIVAS","CATIA SOUZA","CAUÊ DOMINGUES GOMES DE MACEDO","CAUÊ RODRIGUES SATO VALVERDE SANTANA","CBS INSURANCE CORRETORA DE SEGUROS LTDA","CE CORRETORA DE SEGUROS LTDA","CECÍLIA FELIX","CELIANE SANTIAGO SILVA","CIDRE ADMINISTRAÇÃO E CORRETORA DE SEGUROS LTDA","CINTHIA REGINA BARBOSA","CINTIA SANTOS","CINTIANY ROCHA","CJ CORRETORA DE SEGUROS EIRELI","CLAUDIA REGINA BARBOZA DA SILVA","CLK CORRETORA DE SEGUROS LTDA","CM CORRETORA DE SEGUROS LTDA","CONCEITO NOVO CONSULTORIA E CORRETAGEM DE SEGUROS LTDA - EPP","CONFFIDERE CORRETORA DE SEGUROS","CONFIDES CORRETORA -ADRIANA MITIKO TAKARA","CONSENSO CORRETORA DE SEGUROS S/C LTDA","CONTRA RISCO CORRETORA DE SEGUROS LTDA","CONVENIO CERTO CORRETORA DE SEGUROS LTDA","CORRETORA LIV SOLUCAO EM SAUDE E SEGUROS LTDA","CORRETORA PONTO SEGURO LTDA","CORSENAC CORRETORA DE SEGUROS NACIONAIS LTDA","CRISTIANE BERNARDI ELIAS CORRETORA DE SEGUROS LTDA","CRISTIANE MOTA BATISTA","CURATRIX CORRETORA DE SEGUROS EIRELI","D P DE SOUZA RAMOS CORRETORES E AGENTES DE SEGURO","D&P WHITE MASTER CORRET DE SEG LTDA","D1PAULO TIROLI CONS ASSESS EM CORRETG DE SEGUROS LTDA","DAIANA ALMEIDA","DAIANE DE ALMEIDA CESAR","DAIANE SANTOS DO PINHO","DANDARA ROCHA","DANIEL SANTOS DE SOUZA","DANIEL SOUZA","DANIEL TAVARES SANTOS","DANIELA BARBOSA","DANIELLE COSTA SANTOS","DANIELY PINHEIRO","DAYANA DE SOUZA JOSE","DEBORA DE SOUSA BEZERRA - CONSULTORIA COMERCIAL","DEBORA FERREIRA MARQUES","DEBORA PEREIRA DE ANDRADE","DEBORAH CRISTINA GUSMAN ME","DECIDE CORRETORA DE SEGUROS & CONSULTORIA LTDA","DELUCCA CORRET DE SEG LTDA ME","DENER PRADO BARRETO","DEXTERA CORRETORA DE SEGUROS LTDA ME","DGA CONSULT E CORRET DE SEG","DIAS E LIRA CORRETORA DE SEGUROS LTDA","DIEGO FERREIRA FERNANDES","DIEGO QUARESMA CAVALHEIRO","DIEGO SANTOS","DIRECTBOX CORRETORA DE SEGUROS LTDA","DM CONSULTORIA DE SEGUROS","DODIMA CONSULTORIA E CORRETAGEM DE SEGUROS","DOMILE BROKERS CORRETORA DE PLANOS DE SAUDE E SEGUROS LTDA","DONATO CONSULTORIA E CORRETORA DE SEGUROS LTDA","DRILUMA DELSOCI CORRETORA DE SEGUROS E CONSULTORIA EMPRESARIAL EIRELI","E.R.G. LIFE CORRETORA DE SEGUROS DE VIDA E CONSULTORIA EM PLANOS DE SAUDE LTDA","EAGLE VISION CORRETORA DE SEGUROS LTDA","EBP CORRETORA DE SEGUROS LTDA","EDSON FELIPE SILVA OLIVEIRA","EDUARDO BARALDI","EFFICIENZA CORRETORA DE SEGUROS EIRELI","EL SHADDAI ADM CORRET SEG LTDA","ELIDA TAVARES CHIQUETO","ELO CORRETORA DE SEGUROS LTDA","ELOS CORRETORA DE SEGUROS LTDA - EPP","ELTON CORRETORA DE SEGUROS LTDA","EMERSON ALVES","EMLIFE CORRETORA DE SEGUROS LTDA","ENCORE SEGUROS","ENOVAX CORRETORA","EPOS CORRETORA DE SEGUROS LTDA","ERICSSON ERIKE MENDES DE FREITAS","ERIK FELIPPE MAGNO","ERZ ADM E CORRETORA DE SEGUROS","ESCORT CORRETORA DE SEGUROS LTDA","ESTER DE QUEIROZ - CORINGA - PJ","EVELLIN SANTOS SOARES GUILHERME","EXALT SAUDE CONSULTORIA E ASSESSORIA EM SEGUROS LTDA","EXCELLENCY CORRETORA E ADM DE SEGUROS LTDA","F&C SUCESSO CORRETORA DE SEGUROS LTDA","FABIOLA MESSEDER","FACILITY SEG CORRETORA LTDA","FARIA & FIDALGO CORRETORA DE SEGUROS LTDA","FCARVALHO CONSULTORIA E CORRETORA DE SEGUROS LTDA","FELIPE PEREIRA DE BRITO","FERNANDO ASSIS DA SILVA","FERNANDO MORGADO","FF CONSULTORIA E CORRETORA DE SEGUROS EIRELI","FIDELE SEGUROS","FILONE CORRETORA DE SEGUROS EIRELI","FILZEN ADMINISTRADORA E CORRETORA DE SEGUROS LTDA","FIORANO CORRETORA DE SEGUROS LTDA","FLAVIO MARINHO CORRETORA E ADMINISTRADORA DE SEGUROS LTDA","FLAVIO TEODORO","FML CONSULTORIA E CORRETAGEM DE SEGUROS LTDA","FMP CORRETORA DE SEGUROS LTDA ME","FNS SEGUROS LTDA","FOCOSEG CORRETORA DE SEGUROS LTDA","FONTES EF CORRETORA DE SEGUROS LTDA","FORMA CORRETORA DE SEGUROS LTDA","FRAGAZI CORRETORA DE SEGUROS LTDA","FRANCISCA CLEMENTINO DE SOUSA","GABRIEL C GONZALEZ CORRETORA DE SEGUROS","GABRIEL SOUZA","GABRIELLE MORI FERNANDES","GABRIELLY VARRICHIO","GCA CORRETORA DE SEGUROS LTDA","GEFFERSON ALVES TEIXEIRA","GENOVA CORRETORA DE SEGUROS LTDA","GEOVANA BATISTA DOS SANTOS","GEOVANE GOUVEA","GIBOSKY CONSULTORIA EM PLANOS DE SAÚDE LTDA","GIOVANA LOPES CORDEIRO","GIOVANNA BAIOCHI","GIOVANNA CRISTINNY SILVA ARAÚJO","GISELE RODRIGUES CHAGAS","GIULIA RODRIGUES","GLOBAL API CORRETORA DE SEGUROS EIRELI","GOLDEN PROTECTION CORRETORA DE SEGUROS LTDA","GORGATE & OLIVEIRA CORRETORA DE SEGUROS LTDA","GRAND RESERVA CORRETORA DE SEGUROS LTDA","GREISCE FERREIRA DE FARIAS DE SA","GROWTH CORRETORA DE SEGUROS LTDA","GUERATO CORRETORA DE SEGUROS LTDA","GUSTAVO DE PONTES SILVA","GUSTAVO FELIPE ARCHANJO","GUSTAVO HENRIQUE ARAUJO DOMINGUES","GUSTAVO MARTINS BERENGUEL","HALEMBECK CORRETORA DE SEGUROS LTDA","HARD WORK SERVICOS FINANCEIROS EIRELI","HAS CORRETORA DE SEGUROS LTDA","HAUORA BROKER CORRETORA DE SEGUROS LTDA","HEALTH & CARE CORRETORA DE SEGUROS LTDA","HEALTH COMPANY PLANOS DE SAUDE LTDA","HEALTH PLUS CORRETORA LTDA","HELOISA SILVA DE ANDRDAE","HELOISE ANDRADE","HERANÇA CORRETORA DE SEGUROS LTDA","HIPERFOCUS CORRETORA DE SEGUROS LTDA","HUMANI CORRETORA DE SEGUROS LTDA","I4V CORRETORA DE SEGUROS E BENEFÍCIOS LTDA","IGOR DE ALMEIDA MOURA","IGOR FARTURA","ILHA CORRETORA DE SEGUROS LTDA.","IMPACTARE CONSULTORIA E CORRETAGEM DE SEGUROS LTDA","IN SOLUCOES EMPRESARIAIS E CORRETAGEM DE SEGUROS LTDA","INGRID SOUZA","INSIDER CONSULT EM PLANOS DE SAUDE LTDA","INTERPLANETÁRIA CORRETORA E ADMINISTRADORA DE SEGUROS LTDA","ISABELA MAGGION","ISABELA MEDINA RODRIGUES","ISABELE TEODORO MARQUES","ISABELLA APARECIDA GONÇALVES DA SILVA","ISABELLA VASCONCELOS MICILLO","ISADORA FERNANDES SOARES","ISSO CORRETORA DE SEGUROS LTDA","JACKSON LIMA","JACQUELINE ALMEIDA LABADESSA","JACQUELINE BARBOZA","JACQUELINE VITORIA LIMA MENDONÇA","JAELLEN PETRUCIA RAMOS ALVES","JANDECY FERNANDES DE AQUINO","JAQUELINE SOARES","JAYANNE MONIKE DO SANTOS SILVA","JEFFERSON DOS SANTOS","JEFFERSON LOBATO","JENIFER ANDRÉIA GOMES","JENIFER CARLA FARIA DOS SANTOS","JENNIFER OLIVEIRA","JESSICA GONZAGA","JESSICA GUIMARAES","JESSICA SANTANA","JESSICA SCHNEIDER DE SIQUEIRA SANTOS","JESSICA SILVA","JESSYKA SANCHES","JF AGUIAR CONSULTORIA E CORRETORA DE SEGUROS LTDA","JHEVELLY XAVIER ANDRADE","JLA CORRETORA DE SEGUROS EIRELI","JOAO VICTOR ALMIRO DE JESUS","JOICE ASTOLAS DOS SANTOS","JORGE VINICIUS FERREIRA ALVES DOS SANTOS","JOSE HENRIQUE LOBATO DE OLIVEIRA","JOVELO CORRETORA DE SEGUROS LTDA","JOYCE FERNANDA FERREIRA DE OLIVEIRA","JOÃO LEVI GONÇALVES DE OLIVEIRA","JOÃO LUZ","JOÃO PASSOS","JOÃO PEDRO CANONICA DE AMORIM","JOÃO VITOR FERREIRA SOUZA","JRQ CORRETORA DE SEGUROS LTDA","JULIA LIMA SILVA","JULIA RIBEIRO","JULIA RODRIGUES SILVA ARAUJO","JULIANA ALVES DE MOURA","JULIANA CAROLINE ANTUNES PROENCA 51.141.941","JULIANA DE SOUZA SANTOS","JULIANA LIMA JARDIM","JULIO CESAR DA SILVA BORGES","JUMBO CORRETORA DE SEGUROS LTDA","JUNDMED CORRETORA LTDA","JUNIOR ARAUJO DE ALMEIDA","JWC CORRETORA DE SEGUROS LTDA","K&W CORRETORA DE SEGUROS LTDA","KAILANE AGUIAR DE SOUSA","KAILLANY EMANUELY RIBEIRO SILVA","KALYL SOARES","KARINY SIGAKI HUDSON","KARLA A DE A BASSI EPP","KAROLINA ARAUJO SILVA BARRETO","KAUE DE SOUZA SILVA","KEEP LIVES CONSULTORIA E CORRETAGEM DE SEGUROS LTDA","KEESE CORRETORA E ADMINISTRADORA DE SEGUROS LTDA","KELLY CRISTINA","KENDRA CORRETORA DE SEGUROS LTDA","KEVEN LIMA RAMOS","KEVIN SOUZA","KEYLA KERCIA DA SILVA MIRANDA","KEZIA LIMA","KL CONSULTORIA EM PLANOS DE SAUDE LTDA","KMP CORRETORA","L.L. BOB CORRETORA DE SEGUROS LTDA","LAA PEREIRA CORRETORA DE SEGUROS","LAIS LIMA","LAIS REGINA PSICOLOGIA CLINICA LTDA","LANGAME CORRETORA DE SEGUROS LTDA","LARISSA DA SILVA TEIXEIRA","LARISSA DOS SANTOS TORRES","LARISSA FERNANDA COELHO MARIM","LARISSA FERNANDES","LARISSA FREIRE LETIERI","LARISSA LUIZA","LARISSA SUELLÉN MATOS RICCI","LARISSA VALVERDE SOUZA","LASTRO CORRETORA DE SEGUROS EIRELI","LAYSA MARIA FERRAZ CESARIO","LAYSLA ALESSANDRA SOARES DOS SANTOS","LCR8 SERVICOS CORPORATIVOS E CORRETAGEM DE SEGUROS LTDA.","LEANDRO FERREIRA DA SILVA FILHO","LEONARDO DUARTE","LEONARDO JUNIO DE ALMEIDA AMORIM","LERRY CORRETORA DE SEGUROS EIRELI","LETICIA DOS SANTOS TORRES","LETICIA FERNANDES MARQUES","LETS CORRETORA DE SEGUROS LTDA","LETÍCIA DE JESUS CORRÊA","LETÍCIA RICARDO DA SILVA","LIBER CORRETORA DE SEGUROS LTDA","LIDIANE DA ROCHA ABREU","LIFE SEVEN CORRETORA E ADM DE SEG LTDA","LIFEPLANS CORRETORA DE SEGUROS E SAUDE LTDA","LINECOR CORRETORA DE SEGUROS E ADMINISTRACAO LTDA","LINK CORRETORA DE SEGUROS LTDA","LIVIA CANDALAFT DE OLIVEIRA","LIVIA TREVISAN PAVÃO","LM CORRETORA","LM&A RISK SERVICES, CONSULTORIA E CORRETAGEM DE SEGUROS LTDA","LMGSEG ASSESSORIA E CORRETORA DE SEGUROS LTDA.","LS RETT CORRETORA DE SEGUROS","LUAN DIAS","LUCA DE OLIVEIRA","LUCAS DORIVAL XAVIER RAMON","LUCAS FELIX DA SILVA","LUCAS GOMES","LUCAS HENRIQUE MACEDO DA SILVA","LUCAS MELO GUARIZE","LUCAS OLIVEIRA MOURA","LUCAS SANTOS PEREIRA","LUCIANA NASCIMENTO","LUCIMEIRE DE CAMARGO SEABRA","LUIZ MATEUS LOPES DE SIQUEIRA","LUK CONSULTORIA E CORRETORA DE SEGUROS EIRELI","M A DOMINGUES CONSULTORIA DE SEGUROS E PLANOS DE SAUDE ME","M C ALVES LEMOS","M. J. RODRIGUES CORRETAGEM DE PLANOS DE SAUDE","MABM RJ ADMINISTRADORA E CORRETORA DE SEGUROS LTDA - ME","MAFRA CORRETORA DE SEGUROS LTDA","MAIN LAND 3 ADMINISTRADORA E CORRETORA DE SEGUROS H. LTDA EPP","MAIS SAÚDE CORRETORA DE SEGUROS","MAIS SEGURO CONSULTORIA E CORRETAGEM DE SEGUROS LTDA","MALI CORRETORA DE SEGUROS LTDA","MAPPI CORRETORA DE SEGUROS LTDA ME","MARCELO EDUARDO FERREIRA","MARCELO KLERER","MARCILENE SILVA","MARCO VINICIUS VIEIRA","MARCOS APARECIDO PAVÃO","MARCOS PAULO DAS CHAGAS GAMITO","MARIA CLARA SAMPAIO SANTANA","MARIA EDUARDA DA COSTA FRANCO","MARIA EDUARDA PEREIRA LIMA","MARIA JULIA DA SILVA MISKINIS","MARIA TERESA BARBOSA","MARINA SANTOS","MARLI ANDRADE","MARLI. ANDRADE","MAROEZ CORRETORA DE SEGUROS LTDA ME","MARQUES & SOUZA CORRETORA DE SEGUROS DE VIDA LTDA","MATEUS HENRIQUE SILVA DE OLIVEIRA","MATHEUS ANDRE DE OLIVEIRA SILVA","MATHEUS BATISTA DAMASCENO","MATHEUS GABRIEL SILVA DE ANDRADE","MATHEUS LIMA BOCUTTE","MATHIAS SILVA","MATOS & MONTEIRO CORRETORA DE SEGURO DE VIDA LTDA","MAYA CORRETORA DE SEGUROS LTDA","MAYARA ALVES","MEDRISCO CORRETORA DE SEGUROS E CONSULTORIA LTDA","MEGA INTERNATIONAL CORRETORA DE SEGUROS LTDA","MELANIE ALEKSANDRUK","MENDICINO CORRETORA DE SEGUROS EIRELI","MF&D CORRETORA DE SEG LTDA","MICHAEL DOUGLAS","MICHELE BERNARDO","MICHELE BIANCHINI PAZZINI AGAPITO","MICHELE OLIVEIRA","MICHELLE NUNES LIMA","MIKAELLY DA SILVA ALMEIDA LIMA","MINERAL CORRETORA DE SEGUROS LTDA","MK BRASIL ADM E CORRET SEGS LTDA","MKA CORRETORA DE SEGUROS LTDA","MOBY CORRETORA DE SEGUROS LTDA","MOLISANI CONSORCIO E SEGUROS LTDA","MONICA PEREIRA","MONTE LIFE CONSULTORIA E CORRETORA DE SEGUROS LTDA","MORETO E GOUVEA CORRETORA DE SEGUROS LTDA -EPP","MOVE CONSULTORIA E CORRETORA DE SEGUROS","MPIMENTEL ADMINISTRADORA E CORRETORA DE SEGUROS LTDA","MPM SECURITY CORRETORA DE SEGUROS LTDA","MS SEGURADORA","MULTIBENE CONSULTORIA E CORRETORA DE SEGUROS LTDA","MYBRO CORRETORA DE SEGUROS E SAUDE LTDA","MYLLENA FERNANDES","NAIARA PINOW","NAIRA SOUZA","NAKASONE CORRETORA DE SEGUROS LTDA","NALESSO & BAIONE CORRETORA DE SEGUROS","NATHALIA CRISTYAN RICIOPO","NATHALIA NARDELLI","NATIONAL CORRETORA DE SEGUROS LTDA","NATOLI CONSULTORIA E CORRETORA DE SEGUROS LTDA","NAUTISEGUROS ADMINISTRADORA E CORRETORA DE SEGUROS LTDA","NAYARA PINHEIRO DOMINGUES DA SILVA","NBSEGUROS ADMINISTRACAO E CORRETAGEM DE SEGUROS S/S LTDA","NEW CARE CORRETORA DE SEGUROS E ADMINISTRADORA DE BENEFICIOS LTDA","NEWCOR HEALTH CORRETORA DE SEGUROS LTDA","NICOLE SOUZA LIMA","NOOVAMAIS ADMINISTRADORA E CORRETORA DE BENEFICIOS E SEGUROS LTDA","NOVA BOZZO CORRETORA DE SEGUROS EIRELLI ME","NOVVA CRED FINANCEIRAS LTDA","NTX CONSULTORIA E CORRETORA DE SEGUROS LTDA","NÁDIA ALVES","NÚBIA NICOLAU","O+ GESTÃO DE SAÚDE EMPRESARIAL LTDA","OLIVEIRA & SCHITZ CONSULTORIA E CORRETAGEM DE SEGUROS LTDA","ONFIELD CORRESPONDENTE BANCARIO, ARRENDAMENTO MERCANTIL E CORRETORA DE SEGUROS LTDA","ONIX NOVA CORRETORA DE SEGUROS LTDA","OPEN HEALTH CORRETORA DE SEGUROS LTDA","ORBI CORRETORA E ADMINISTRADORA DE SEGUROS LTDA","ORIGINAL BROKER CORRET DE SEG LTDA","ORNIA CORRETORA DE SEGUROS","OS MESMOS SAUDE E CORRETORA DE SEGUROS LTDA","OURO REAL CORRETORA DE SEGUROS E ADMINISTRADORA","OUROSEG CORRETAGEM DE SEGUROS LTDA","PALOMA DE SOUZA FARIAS","PALOMA PEDRINA MACIEL BARRETO","PAMELA LIMA","PAMELA PANIAGUA DE SOUSA","PATRICIA MAGALHÃES","PATRIOTA CORRETORA DE SEGUROS EIRELI","PAULO HENRIQUE LIMA DA SILVA","PAULO ROGERIO SANTIAGO MARCELINO","PEDRO ANTHONY MATOS RAMOS","PEDRO HENRIQUE ESPER SILVA","PEDRO IGOR SATURNINO","PEDRO SILVA","PETERSON MASCARENHAS","PETERSON MASCARENHAS - SPREAD","PHILIPE GOMES","PICK CONSULTORIA E CORRETORA DE SEGUROS LTDA","PIRANI ADMINISTRADORA E CORRETORA DE SEGUROS LTDA","PIRAS E PADUA CORRETORA DE SEGUROS","PISOM CORRETORA DE SEGUROS LTDA","PLANOS DE SAÚDE PREMIUM CORRETORA DE SEGUROS","PLAVEN CORRETORA DE SEGUROS LTDA","POMDRADE CONSULTORIA DE BENEFICIOS LTDA","PONTO AZUL - CORRETORA DE SEGUROS LTDA","PONTO DE VISTA CORRETORA E ADMINISTRADORA DE SEGUROS LTDA ME","PORTAL CARE CONSULTORIA E CORRETORA DE SEGUROS LTDA","PRECAVIX CORRETORA DE SEGUROS LTDA","PREVIO CORRETORA DE SEGUROS E SERVICOS LTDA.","PRIME SECURE CORRETORA","PRIMOSEG CONSULTORIA ADMINISTRADORA E CORRETORA DE SEGUROS LTDA","PRISCILA CANDALAFT GAMBIRASIO","PROBOVITA GESTAO DE BENEFICIOS E VIAGENS LTDA","PROTEX ADMINISTRADORA E CORRETORA DE SEGUROS LTDA","R & R RODRIGUES & ROCHA CORRETORA DE SEGUROS LTDA","R COSTA ADMINISTRADORA E CORRETORA DE SEGUROS S/S LTDA","R RUBIO RUIZ CORRETORA DE SEGUROS LTDA","R VON HELDE FERREIRA CORRETORA DE SEGUROS LTDA","R. ESCALIANTE CORRETORA DE SEGUROS LTDA","R.B. BOTTA CORRETORA DE SEGUROS LTDA","RAFAEL ALMEIDA DOS SANTOS","RAFAEL DE SOUSA OLIVEIRA MACIEL","RAFAH CORRETORA DE BENEFÍCIOS LTDA","RAIANE DE OLIVEIRA","RAMOS & ARAUJO CORRETORA DE SEGUROS SS LTDA","RAPHAEL ROSEIRA NUNES","RAQUEL DE SOUZA GOMES","RAQUEL GENEBRA DIAS","RASX ASSESSORIA, CONSULTORIA EMPRESARIAL E CORRETORA LTDA","RAYANE VIEIRA DA SILVA","RB CORRETORA DE SEGUROS LTDA","RCALMEIDA CORRETORA DE SEGUROS LTDA","RDIAS CORRETORA DE SEGUROS E SERVIÇOS EIRELI","REBECA ALONSO PAIVA","REDUÇAO SAUDE CONSULTORIA DE BENEFICIOS EIRELI","REINER FERNANDO FERNANDES","RELUA CORRETORA DE SEGUROS LTDA","RENATA BARBARA DOS SANTOS","RENATA CRISTINA RAYMUNDO","RENATA REIS CORRETORA DE SEGUROS LTDA","RENATA TAFFI","REVISA SOLUCOES EM GESTAO DE BENEFICIOS LTDA","REVISE SEU PLANO CORRETORA DE SEGUROS","RFLIFE SOLUCOES LTDA","RHEA CORRETORA DE SEGUROS E ASSESSORIA FINANCEIRA LTDA","RIBEIRO SUL SAO PAULO ADMINISTRADORA E CORRETORA DE SEGUROS LTDA - EPP","RICARDO NOGUEIRA","RITA DE CASSIA SERINGE","RK CORRETORA DE SEGUROS EIRELI ME","ROBERT DE OLIVEIRA BRANDÃO","RODOSEG CORRETORA DE SEGUROS E CONSULTORIA LTDA","RODRIGO DESCO","ROMASEG CORRETORA DE SEGUROS LTDA","RONALDO NUNES","ROP CORRETORA DE SEGUROS LTDA","ROSEMARY FERREIRA DE ABREU PLANOS DE SAUDE","S LOPES CONSULTORIA","SADE SEGUROS LTDA","SAFE PLAN CORRETORA DE SEGUROS E PLANOS DE SAUDE LTDA","SALUS ASSESS E CONSULT EM PLANOS DE SAUDE LTDA","SAMILI SANTOS","SANSIL BROKER CONSULTORIA EM SEGURO E PLANO DE SAUDE LTDA","SANTORINI CORRETORA DE SEGUROS EIRELI","SARITA ROSALIA CAIXETA","SAULO MATEUS DE JESUS SANTOS - ME","SCM2 CORRETORA DE SEGUROS LTDA","SEG & SERV CORRETORA DE SEGUROS LTDA ME","SEGPARTNERS BRASIL CORRETORA DE SEGUROS S/A","SEGURO10 CORRETORA DE SEGUROS LTDA","SEGUROS FUTURA SERVIÇOS ADM E CORRET LTDA","SELTER CORRETORA DE SEGUROS EIRELI","SEU PLANO CORRETORA DE SEGUROS LTDA","SHIRLEY LIMA","SHL ADMINISTRADORA E SERVIÇOS LTDA","SILDE DE CASSIA FAGUNDES","SIMI ADMINISTRADORA E CORRETORA DE SEGUROS LTDA ME","SLR CORRETORA DE SEGUROS LTDA","SOL LIFE CORRETORA DE SEGUROS LTDA","SOLECO SERVICOS LTDA","SOLLUCIONE CONSULTORIAS E GESTÃO DOS BENEFÍCIOS LTDA","SOLUCIONE CORRETORA DE SEGUROS EIRELI","SOLUTION FOR LIFE CORRETORA E ADMINISTRADORA DE SEGUROS LTDA","SOMNIUM SOLUCOES CRIATIVAS LTDA","SORRENTO INTERMEDIACAO DE NEGOCIOS LTDA","SQUADRA UNO CORRETORA DE SEGUROS LTDA","SRO BROKERS CORRETORA DE SEGUROS LTDA","SSPCAP CORRRETORA DE SEG LTDA","STARFOX CONSULTORIA E CORRETAGEM DE SEGUROS LTDA EPP","STELLA CAROLINA NUNES DA SILVA","STEPHANY MARTINS DE GREGORIO SANTOS","STILL CORRETORA DE SEGUROS LTDA","STÉPHANIE FERNANDA CAMPÊLO DA SILVA","SUELEN ANTUNES GONÇALVES","SUELEN FERNANDES","SUELLEN BRAZ COSTA","SUELLEN MARTINS","SULLA VITA CONSULTORIA E CORRETORA DE SEGUROS S/S LTDA","SVITEK CORRETORA DE SEGUROS","TAINÁ MIRELLA GONÇALVES STRASI DIAS","TALITA SILVA MORENO","TAMIRIS MATOS BARBOSA","TATIANA FONSECA","TATIANA PESSUTO","TAVARES CONTABILIDADE SERVICOS S/S LTDA","TAYNARA OTT","TCA ADMINISTRADORA E CORRETORA DE SEGUROS LTDA","TECHBROKERS CORRETORA DE SEGUROS LTDA","TELMA DOS SANTOS MARTINS CORRETAGEM E CONSULTORIA EM SEGUROS LTDA","TENERIFE CORRETORA DE SEGUROS LTDA","TEXAS AFFINITY CORRETORA DE SEGUROS LTDA","TGUIMARAES CORRETORA DE SEGUROS LTDA","THALITA MELO","THAMARA CRISTINA","THAMIRIS FARIA GOMEZ RODRIGUES","THAYNA PINHEIRO","THAYNA VIEIRA MARQUES","THAYNARA SANTOS","THAYS CORRÊA PONTES","THIAGO MOREIRA BARALDINI CORRETORA DE SEGUROS ME","THIAGO MOURA","THINK ABOUT CORRETORA DE SEGUROS LTDA","TIKVAH CORRETORA DE SEGUROS LTDA","TIMECARE CONSULTORIA EM SAUDE E BENEFICIOS LTDA","TOP CLASS CONSULTORIA, ASSESSORIA E CORRETORA DE SEGUROS LTDA","TORABELI CORRETORA DE SEGUROS DE VIDA LTDA","TORRUBIA CARDOSO CORRETORA DE SEGUROS LTDA","TORUS CORRETORA DE SEGUROS E ASSESSORIA EMPRESARIAL LTDA","TRUE CONSULTING CORRETORA DE SEGUROS LTDA","ULISSES & SILVANA ADM E COR SEGS LTDA","UMBRIA PRIVATE SERVICES ADMINISTRADORA E CORRETORA DE SEGUROS LTDA","V P CONSULTORIA E BENEFICIOS LTDA","V.M MADUREIRA CORRETORES E AGENTES DE SEGUROS","VALENDO CORRETORA DE SEGUROS & BENEFICIOS EIRELI","VALERIA RAYSSA OLIVEIRA LIMA","VANESSA DE CARVALHO EDUARDO SIRNE","VANESSA TAVARES CAVALCANTI","VANI ROQUE DE AQUINO CAETANO","VENTURIN CONSULTORIA DE NEGOCIOS E SAUDE LTDA","VIA DIRETA CORRETORA E ADMINISTRADORA DE SEGUROS LTDA","VIA MAIS CORRETORA DE SEGUROS E BENEFICIOS LTDA","VICTOR SILVA","VICTORIA ZHAO ZHONG MEI BERBERT","VICTÓRIA LUIZA SOUSA SILVA","VIDA DE OURO CORRETORA E ADMINISTRADORA DE SEGUROS LTDA","VIDA SEGURA CORRETORA DE SEGUROS LTDA","VIDA360 CORRETORA DE SEGUROS LTDA","VIDE CORRETORA E NEGOCIOS LTDA","VINICIUS ADDEU","VINICIUS DURAES","VINICIUS REGUFE","VIRTUS CORRETORA DE SEGUROS LTDA","VISÃO CORRETORA DE SEGUROS LTDA","VITALSABOIA CORRETORA DE SAUDE LTDA","VITOR MESQUITA","VITORIA APARECIDA COSTA SANTOS","VITORIA APARECIDA SOARES ALVES","VITORIA MONTEIRO FRASSINI","VITORIA PERON RODRIGUES","VIVER SEGURO - CONSULTORIA, ADMINISTRAÇÃO E CORRETAGEM DE SEGUROS","VIVIAN CRISTINE TREVISAN PAVÃO","VIVIANE GONÇALVES LIMA STRASI","VIVIANE MARIA SILVA CARNEIRO","VOLER CORRETORA DE SEGUROS LTDA","W MARTINS CORRETORA DE SEGUROS EIRELI","WALDYANI BEZERRA DA SILVA","WALNER BEZERRA DA SILVA","WANDERSON JUNIOR","WANESSA MONTEIRO DE SOUZA","WELLINGTON ISAAC DA SILVA MAXIMINIANO","WENDY MARINS","WESLAINE CRISTINA DOS SANTOS COSTA","WESLLEY CUNHA","WILLIAM HUNGRIA MOREIRA","WILMAR EVANGELISTA DA CUNHA CORRETOR DE SEGUROS","WILMERS CONSULTORIA GERENCIAL E CORRETORA DE SEGUROS DE VIDA LTDA ME","WILSON FIRMINO PEREIRA JUNIOR","WMARTINS CORRETORA DE SEGUROS LTDA","WPJ FERNANDES CORRETORA DE SEGUROS EIRELI","WR&C CORRETORA DE SEGUROS LTDA","YAGO SANTOS","YASMIN RODRIGUES DOS SANTOS","YESOD JY BORRIERO CORRETORA DE SEGUROS LTDA","YOHAN RODRIGUES ARAUJO DE AZEVEDO","YOKA CORRETORA DE SEGUROS EIRELI - ME","YOUPOP CORRETORA E ADMINISTRADORA DE SEGUROS LTDA","YVIE ASSESSORIA E CORRETAGEM EM SEGURO LTDA","ZARB CONSULTORIA E CORRETORA DE SEGUROS LTDA","ZSUL ADMINISTRADORA E CORRETORA DE SEGUROS LTDA"].map(e=>e.toUpperCase().trim()));
+
+function isNF(n,cod){
+  // 1. Verifica pelo código no CSV carregado
+  if(cod&&emittersMap[cod.trim()])return true;
+  // 2. Verifica pelo nome no CSV carregado
+  const nu=(n||'').toUpperCase().trim();
+  if(emittersMap[nu])return true;
+  // 3. Fallback: lista interna sempre disponível
+  return EMITTERS_BASE.has(nu);
+}
+function setWeek(v){document.getElementById('wbadge').textContent='Semana — '+(v||'')}
+
+function goTab(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('panel-'+id).classList.add('on');
+  const idx={import:0,conf:1,resumo:2}[id];
+  document.querySelectorAll('.tab')[idx].classList.add('on');
+}
+
+// ── XML RECEBIMENTO UPLOAD ──────────────────────────────────────────────────
+function handleRec(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      handleRecText(e.target.result, file.name);
+    }catch(err){
+      showMsg('⚠ Erro ao ler arquivo: '+err.message,true);
+      console.error(err);
+    }
+  };
+  // Try latin-1 first, fallback to utf-8
+  reader.readAsText(file,'latin-1');
+  reader.onerror=()=>{ const r2=new FileReader(); r2.onload=e2=>{handleRecText(e2.target.result,file.name);}; r2.readAsText(file,'utf-8'); };
+}
+
+// ── CSV UPLOAD ──────────────────────────────────────────────────────────────
+function handleCSV(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const lines=e.target.result.split('\n').filter(l=>l.trim());
+      const sep=lines[0].includes('\t')?'\t':';';
+      const hdr=lines[0].split(sep).map(c=>c.trim().toLowerCase());
+      let nc=0,fc=1;
+      hdr.forEach((h,i)=>{
+        if(h.includes('nome')||h.includes('razao')||h.includes('corret'))nc=i;
+        if(h.includes('freq')||h.includes('period')||h.includes('sem')||h.includes('men'))fc=i;
+      });
+      const nm={};
+      lines.slice(1).forEach(line=>{
+        const cols=line.split(sep).map(c=>c.trim().replace(/^["']|["']$/g,''));
+        const nome=(cols[nc]||'').toUpperCase().trim();
+        const freq=(cols[fc]||'').toUpperCase().trim();
+        if(nome){const f=freq.includes('SEM')?'SEMANAL':freq.includes('MEN')?'MENSAL':'';nm[nome]={freq:f};}
+      });
+      emittersMap=nm;
+      allData=allData.map(r=>({...r,freq:(emittersMap[r.nome.toUpperCase()]?.freq||'')}));
+      const el=document.getElementById('u-emissores-status');
+      el.textContent='✓ CSV carregado — '+Object.keys(nm).length+' emissores';
+      el.className='ustatus ok';
+      if(allData.length){renderInovah();renderNF();renderResumo();}
+      showMsg('✓ Lista de emissores atualizada.');
+    }catch(err){console.error(err);}
+  };
+  r.readAsText(file,'UTF-8');
+}
+
+// ── PARSE ───────────────────────────────────────────────────────────────────
+function parseRows(text){
+  const lines=text.trim().split('\n').filter(l=>l.trim());
+  const rows=[];
+  for(const line of lines){
+    const sep=line.includes('\t')?'\t':line.includes(';')?';':',';
+    const cols=line.split(sep).map(c=>c.trim().replace(/^["']|["']$/g,''));
+    if(['Código','codigo','Documento'].includes(cols[0])||cols[3]==='Corretor')continue;
+    if(cols.length>=5&&cols[3]&&cols[3].length>1){
+      const val=parseFloat((cols[4]||'0').replace(',','.'));
+      if(val>0){
+        const codCorr=(cols[18]||'').trim();
+        const src=isNF(cols[3],codCorr)?'nf':'inovah';
+        rows.push({
+          cod:cols[0]||'',doc:cols[2]||'',nome:cols[3]||'',val,
+          banco:cols[6]||'',ag:cols[7]||'',
+          conta:(cols[9]||'')+(cols[10]?'-'+cols[10]:''),
+          tipo:cols[11]||'',assistente:cols[15]||'',
+          codCorr,source:src,
+          freq:(emittersMap[codCorr]?.freq||emittersMap[(cols[3]||'').toUpperCase().trim()]?.freq||'')
+        });
+      }
+    }
+  }
+  return rows;
+}
+
+function onPaste(){
+  const rows=parseRows(document.getElementById('txt-rec').value);
+  document.getElementById('cnt-rec').textContent=rows.length+' registros';
+  updateCards(rows);
+}
+
+// ── CALC ────────────────────────────────────────────────────────────────────
+function calcInovah(rows){
+  const iv=rows.filter(r=>r.source==='inovah');
+  const n=iv.length;
+  const liqSis=iv.reduce((a,r)=>a+r.val,0);
+  const liqMan=manualDataI.reduce((a,r)=>a+r.val,0);
+  const nMan=manualDataI.length;
+  const liq=liqSis+liqMan;          // Inovah + Manuais
+  const vp=liq*1.01;                 // Tarifa Adm 1% sobre total
+  const taxa=(n+nMan)*2;             // Taxa bancária por todos
+  const pedido=vp+taxa;              // Valor Pedido total
+  return{n,nMan,liqSis,liqMan,liq,vp,taxa,pedido};
+}
+
+function updateCards(rows){
+  const iv=calcInovah(rows);
+  const sn=rows.filter(r=>r.source==='nf').reduce((a,r)=>a+r.val,0);
+  const snM=manualDataN.reduce((a,r)=>a+r.val,0);
+  document.getElementById('s-inovah').textContent=fmt(iv.pedido);
+  document.getElementById('s-nf').textContent=fmt(sn+snM);
+  document.getElementById('s-total').textContent=fmt(iv.pedido+sn+snM);
+  document.getElementById('q-inovah').textContent=iv.n+' corretores';
+  document.getElementById('q-nf').textContent=rows.filter(r=>r.source==='nf').length+' corretores';
+  document.getElementById('q-total').textContent=rows.length+' registros';
+}
+
+// ── PROCESSAR ───────────────────────────────────────────────────────────────
+// ── BASE DE CORRETORES ────────────────────────────────────────────────────
+let baseDoc={}, baseNome={}, baseCod={};
+
+function parseXMLBase(text){
+  const nd={},nn={},nc={};
+  const rowParts=text.split(/<\/ss:Row>|<\/Row>/i);
+  let first=true;
+  rowParts.forEach(rowStr=>{
+    if(first){first=false;return;}
+    if(!rowStr.includes('Data'))return;
+    const vals=Array(18).fill('');
+    let idx=0;
+    const re=/<(?:ss:)?Cell[\s\S]*?(?:ss:Index="(\d+)")?[^>]*?>[\s\S]*?<(?:ss:)?Data[^>]*?>([^<]*)<\/(?:ss:)?Data>/gi;
+    let m;
+    while((m=re.exec(rowStr))!==null){
+      if(m[1])idx=parseInt(m[1])-1;
+      if(idx<18)vals[idx]=(m[2]||'').trim();
+      idx++;
+    }
+    const cod=vals[0].trim();
+    const nome=vals[1].toUpperCase().trim();
+    const doc2=vals[2].replace(/^0+/,'');
+    const incl=vals[12]?vals[12].substring(0,10):'';
+    if(!incl)return;
+    if(cod)nc[cod]=incl;
+    if(nome)nn[nome]=incl;
+    if(doc2)nd[doc2]=incl;
+  });
+  return{nd,nn,nc};
+}
+function handleBase(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const text=e.target.result;
+      // Validate: reject if this looks like a comissao file
+      const firstLine=(text.split('\n')[0]||'').toLowerCase();
+      if(firstLine.includes('valor liquido')||firstLine.includes('valor líquido')){
+        document.getElementById('u-base-status').textContent='⚠ Arquivo errado! Envie a Base de Corretores, não o CSV de comissão.';
+        document.getElementById('u-base-status').className='ustatus err';
+        showMsg('⚠ Arquivo incorreto na Base de Corretores!',true);
+        return;
+      }
+      const nd={},nn={},nc={};
+      if(file.name.toLowerCase().endsWith('.xml')){
+        const res=parseXMLBase(text);
+        Object.assign(nd,res.nd);Object.assign(nn,res.nn);Object.assign(nc,res.nc);
+      } else {
+        const lines=text.split('\n').filter(l=>l.trim());
+        const sep=lines[0].includes('\t')?'\t':';';
+        const hdr=lines[0].split(sep).map(h=>h.trim().toLowerCase());
+        let nc2=1,dc=2,ic=12,cc=0;
+        hdr.forEach((h,i)=>{
+          if(h.includes('nome'))nc2=i;
+          if(h.includes('doc'))dc=i;
+          if(h.includes('inclu'))ic=i;
+          if(h==='código'||h==='codigo'||h==='cod')cc=i;
+        });
+        lines.slice(1).forEach(line=>{
+          const cols=line.split(sep).map(c=>c.trim().replace(/^["']/,'').replace(/["']$/,''));
+          const cod=(cols[cc]||'').trim();
+          const nome=(cols[nc2]||'').toUpperCase().trim();
+          const doc2=(cols[dc]||'').replace(/^0+/,'');
+          const incl=cols[ic]?cols[ic].substring(0,10):'';
+          if(!incl||!nome)return;
+          if(cod)nc[cod]=incl;
+          nn[nome]=incl;
+          if(doc2)nd[doc2]=incl;
+        });
+      }
+      baseDoc=nd;baseNome=nn;baseCod=nc;
+      const cnt=Object.keys(nc).length||Object.keys(nn).length;
+      const el=document.getElementById('u-base-status');
+      el.textContent='\u2713 Base carregada \u2014 '+cnt+' corretores';
+      el.className='ustatus ok';
+      debugBase();
+      if(allData.length)updateBaseAlert();
+      renderInovah();
+      showMsg('\u2713 Base de corretores carregada: '+cnt+' registros.');
+    }catch(err){
+      document.getElementById('u-base-status').textContent='\u26a0 Erro: '+err.message;
+      console.error(err);
+    }
+  };
+  r.readAsText(file,'latin-1');
+}
+
+function getInclusao(doc,nome,cod){
+  const c=(cod||'').trim();
+  if(c&&baseCod[c])return baseCod[c];
+  const d=(doc||'').replace(/^0+/,'');
+  if(d&&baseDoc[d])return baseDoc[d];
+  const n=(nome||'').toUpperCase().trim();
+  if(n&&baseNome[n])return baseNome[n];
+  return null;
+}
+function debugBase(){
+  console.log('baseCod entries:',Object.keys(baseCod).length);
+  console.log('baseNome entries:',Object.keys(baseNome).length);
+  // Test from actual allData
+  const inovah=allData.filter(r=>r.source==='inovah').slice(0,3);
+  inovah.forEach(r=>{
+    const incl=getInclusao(r.doc,r.nome,r.codCorr);
+    const dias=diasDesde(incl);
+    console.log(r.nome+' | codCorr='+r.codCorr+' | incl='+incl+' | dias='+dias);
+  });
+}
+
+function diasDesde(dateStr){
+  if(!dateStr)return null;
+  return Math.floor((new Date()-new Date(dateStr))/(1000*60*60*24));
+}
+
+function fmtDate(dateStr){
+  if(!dateStr)return'—';
+  const [y,m,d]=dateStr.split('-');
+  return d+'/'+m+'/'+y;
+}
+
+function updateBaseAlert(){
+  const novos=allData.filter(r=>{
+    if(r.source!=='inovah')return false;
+    const dias=diasDesde(getInclusao(r.doc,r.nome));
+    return dias!==null&&dias<=90;
+  });
+  const al=document.getElementById('base-alert');
+  if(novos.length){
+    al.style.display='block';
+    document.getElementById('base-novos-count').textContent=novos.length;
+  } else {
+    al.style.display='none';
+  }
+}
+
+function handleRecText(text, fname){
+  const rows=[];
+  // Validate: reject if this looks like base de corretores XML
+  if(text.trim().startsWith('<')){
+    showMsg('⚠ Arquivo incorreto! Envie o CSV de comissão, não o XML da base.',true);
+    return;
+  }
+  // Auto-detect separator: ; or tab or ,
+  const firstLine=text.split('\n')[0]||'';
+  const sep=firstLine.includes('\t')?'\t':firstLine.includes(';')?';':',';
+  const lines=text.split('\n').filter(l=>l.trim());
+  lines.slice(1).forEach(line=>{
+    const cols=line.split(sep).map(c=>c.trim().replace(/^["']|["']$/g,''));
+    const nome=cols[3]||'';
+    const val=parseFloat((cols[4]||'0').replace(',','.'));
+    if(!nome||val<=0||nome==='Corretor')return;
+    const codCorr=cols[18]||'';
+    const src=isNF(nome,codCorr)?'nf':'inovah';
+    rows.push({
+      cod:cols[0]||'',doc:cols[2]||'',nome,val,
+      banco:cols[6]||'',ag:cols[7]||'',
+      conta:(cols[9]||'')+(cols[10]?'-'+cols[10]:''),
+      tipo:cols[11]||'',assistente:cols[15]||'',
+      codCorr,source:src,
+      freq:(emittersMap[codCorr.trim()]?.freq||emittersMap[nome.toUpperCase().trim()]?.freq||'')
+    });
+  });
+  if(!rows.length){showMsg('Nenhum dado válido. Verifique o arquivo.',true);return;}
+  allData=rows;
+  finalizarProcessamento(rows);
+  showMsg('✓ Arquivo carregado: '+rows.length+' registros.');
+}
+function finalizarProcessamento(rows){
+  const erros=rows.filter(r=>temErro(r)).length;
+  const sc=document.getElementById('s-status');
+  sc.textContent=erros?'⚠ '+erros+' erro'+(erros>1?'s':''):'✓ Pronto';
+  sc.style.color=erros?'var(--red)':'var(--purple)';
+  document.getElementById('s-sub').textContent=rows.length+' registros classificados';
+  document.getElementById('cnt-rec').textContent=rows.length+' registros';
+  renderInovah();renderNF();renderResumo();
+  if(Object.keys(baseNome).length){updateBaseAlert();debugBase();}
+  goTab('conf');
+}
+function processar(){
+  const rows=parseRows(document.getElementById('txt-rec').value);
+  if(!rows.length){showMsg('Nenhum dado válido. Verifique o formato.',true);return}
+  allData=rows;
+  finalizarProcessamento(rows);
+  showMsg('✓ Processado: '+rows.length+' registros.');
+}
+
+function limpar(){
+  allData=[];
+  document.getElementById('txt-rec').value='';
+  document.getElementById('cnt-rec').textContent='0 registros';
+  updateCards([]);
+  document.getElementById('s-status').textContent='Aguardando';
+  document.getElementById('s-status').style.color='var(--muted)';
+  document.getElementById('s-sub').textContent='Importe o Recebimento do SIS';
+}
+
+function showMsg(msg,err){
+  const el=document.getElementById('smsg');
+  el.textContent=msg;el.style.display='inline-block';
+  el.style.background=err?'var(--red-light)':'var(--border)';
+  el.style.color=err?'var(--red)':'var(--muted)';
+  setTimeout(()=>el.style.display='none',3500);
+}
+
+// ── VALIDAÇÃO ───────────────────────────────────────────────────────────────
+function temErro(r){
+  if(r.source!=='inovah')return false;
+  const ag=(r.ag||'').replace(/\D/g,'');
+  const temDig=(r.conta||'').includes('-')&&(r.conta||'').split('-')[1].trim().length>0;
+  const dias=diasDesde(getInclusao(r.doc,r.nome,r.codCorr));
+  const isNovo=dias!==null&&dias>=0&&dias<=90;
+  return ag.length!==4||!temDig||isNovo;
+}
+function analise(r){
+  if(r.source!=='inovah')return'<span style="font-size:11px;color:var(--muted)">N/A</span>';
+  const ag=(r.ag||'').replace(/\D/g,'');
+  const temDig=(r.conta||'').includes('-')&&(r.conta||'').split('-')[1].trim().length>0;
+  const erros=[];
+  if(ag.length!==4)erros.push('Agência: '+ag.length+' dígito'+(ag.length!==1?'s':''));
+  if(!temDig)erros.push('Conta sem dígito');
+  const dias=diasDesde(getInclusao(r.doc,r.nome,r.codCorr));
+  if(dias!==null&&dias>=0&&dias<=90)erros.push('Novo: '+dias+'d');
+  if(!erros.length)return'<span class="badge b-ok">✓ Ok</span>';
+  return'<span class="badge b-err" title="'+erros.join(' | ')+'">⚠ '+erros.length+' erro'+(erros.length>1?'s':'')+'</span>';
+}
+
+// ── FILTRO / TABELA ─────────────────────────────────────────────────────────
+function setF(f){
+  filt=f;page=0;
+  ['all','inovah','nf','err'].forEach(x=>{
+    const el=document.getElementById('chip-'+x);
+    if(el)el.classList.toggle('on',x===f);
+  });
+  renderT();
+}
+
+function getFiltered(){
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  return allData.filter(r=>{
+    if(filt==='inovah'&&r.source!=='inovah')return false;
+    if(filt==='nf'&&r.source!=='nf')return false;
+    if(filt==='err'&&!temErro(r))return false;
+    if(q&&!r.nome.toLowerCase().includes(q)&&!r.doc.includes(q))return false;
+    return true;
+  });
+}
+
+function renderT(){
+  const rows=getFiltered();
+  const pageRows=rows.slice(page*PER,(page+1)*PER);
+  const tbody=document.getElementById('tbody');
+  if(!rows.length){
+    tbody.innerHTML='<tr><td colspan="12" class="empty">Nenhum registro. Importe dados na aba "Importar Dados".</td></tr>';
+  }else{
+    const poupa=isPoupanca;
+    const freqBadge=r=>r.freq?'<span class="badge '+(r.freq==='SEMANAL'?'b-sem':'b-men')+'">'+r.freq.charAt(0)+r.freq.slice(1).toLowerCase()+'</span>':'<span style="font-size:11px;color:var(--muted)">—</span>';
+    tbody.innerHTML=pageRows.map((r,i)=>`<tr class="${poupa(r)?'poupa':''}">
+      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${page*PER+i+1}</td>
+      <td class="doc">${r.doc}</td>
+      <td class="nome" title="${r.nome}">${r.nome}</td>
+      <td><span class="badge ${r.source==='inovah'?'b-inovah':'b-nf'}">${r.source==='inovah'?'Inovah':'NF'}</span></td>
+      <td class="val">${fmtN(r.val)}</td>
+      <td class="banco">${r.banco}</td>
+      <td class="banco">${r.ag}</td>
+      <td class="banco">${r.conta}</td>
+      <td style="text-align:center">${r.source==='inovah'?(poupa(r)?'<span class="badge" style="background:var(--gold-light);color:#7A5010">Sim</span>':'<span style="font-size:12px;color:var(--muted)">Não</span>'):'<span style="font-size:11px;color:var(--muted)">N/A</span>'}</td>
+      <td>${freqBadge(r)}</td>
+      <td style="text-align:center">${analise(r)}</td>
+      <td style="font-size:12px;color:var(--muted)">${r.assistente}</td>
+    </tr>`).join('');
+  }
+  document.getElementById('pinfo').textContent=`${rows.length} registros — pág ${page+1}/${Math.max(1,Math.ceil(rows.length/PER))}`;
+  document.getElementById('pprev').disabled=page===0;
+  document.getElementById('pnext').disabled=(page+1)*PER>=rows.length;
+}
+
+function prevP(){if(page>0){page--;renderT()}}
+function nextP(){if((page+1)*PER<getFiltered().length){page++;renderT()}}
+
+// ── RESUMO ──────────────────────────────────────────────────────────────────
+
+// ── SUB-TABS ─────────────────────────────────────────────────────────────────
+let subTab='inovah', pageI=0, pageN=0, errIv=false, novoIv=false, poupaIv=false;
+
+function togglePoupaIv(){
+  poupaIv=!poupaIv;
+  document.getElementById('chip-poupa-iv').classList.toggle('on',poupaIv);
+  pageI=0;renderInovah();
+}
+function toggleNovoIv(){
+  novoIv=!novoIv;
+  document.getElementById('chip-novo-iv').classList.toggle('on',novoIv);
+  pageI=0;renderInovah();
+}
+function toggleErrIv(){
+  errIv=!errIv;
+  document.getElementById('chip-err-iv').classList.toggle('on',errIv);
+  pageI=0;renderInovah();
+}
+function setSubTab(t){
+  subTab=t;
+  document.getElementById('sub-inovah').style.display=t==='inovah'?'block':'none';
+  document.getElementById('sub-nf').style.display=t==='nf'?'block':'none';
+  document.getElementById('manual-section').style.display=t==='inovah'?'block':'none';
+  document.getElementById('manual-section-n').style.display=t==='nf'?'block':'none';
+  const tabs=document.querySelectorAll('.stab');
+  tabs.forEach((el,i)=>{
+    const active=['inovah','nf'][i]===t;
+    el.classList.toggle('on',active);
+    el.style.background=active?'var(--purple)':'';
+    el.style.color=active?'#fff':'var(--muted)';
+  });
+  if(t==='inovah')renderInovah();else renderNF();
+}
+
+// ── INOVAH TABLE ──────────────────────────────────────────────────────────────
+function getInovah(){
+  const q=(document.getElementById('search-inovah').value||'').toLowerCase();
+  return allData.filter(r=>{
+    if(r.source!=='inovah')return false;
+    if(errIv&&!temErro(r))return false;
+    if(novoIv){
+      const dias=diasDesde(getInclusao(r.doc,r.nome,r.codCorr));
+      if(!(dias!==null&&dias>=0&&dias<=90))return false;
+    }
+    if(poupaIv&&!isPoupanca(r))return false;
+    if(q&&!r.nome.toLowerCase().includes(q)&&!r.doc.includes(q))return false;
+    return true;
+  });
+}
+function renderInovah(){
+  const rows=getInovah();
+  const pr=rows.slice(pageI*PER,(pageI+1)*PER);
+  const tb=document.getElementById('tbody-inovah');
+  if(!tb)return;
+  const poupa=isPoupanca;
+  if(!rows.length){
+    tb.innerHTML='<tr><td colspan="11" class="empty">Nenhum registro Inovah.</td></tr>';
+  }else{
+    tb.innerHTML=pr.map((r,i)=>{
+      const incl=getInclusao(r.doc,r.nome,r.codCorr);
+      const dias=diasDesde(incl);
+      const isNovo=dias!==null&&dias>=0&&dias<=90;
+      const inclCell=(dias!==null&&dias>=0&&dias<=90)?`<span class="badge badge-novo">🔴 ${dias}d</span>`:'<span style="font-size:11px;color:var(--muted)">—</span>';
+      return`<tr class="${poupa(r)?'poupa':isNovo?'novo-row':''}">
+      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${pageI*PER+i+1}</td>
+      <td class="doc">${r.doc}</td>
+      <td class="nome" title="${r.nome}">${r.nome}</td>
+      <td class="val">${fmtN(r.val)}</td>
+      <td class="banco">${r.banco}</td>
+      <td class="banco">${r.ag}</td>
+      <td class="banco">${r.conta}</td>
+      <td style="text-align:center">${poupa(r)?'<span class="badge" style="background:var(--gold-light);color:#7A5010;border:1px solid #E8D49A">Sim</span>':'<span style="font-size:12px;color:var(--muted)">Não</span>'}</td>
+      <td>${inclCell}</td>
+      <td style="text-align:center">${analise(r)}</td>
+      <td style="font-size:12px;color:var(--muted)">${r.assistente}</td>
+    </tr>`;
+    }).join('');
+  }
+  document.getElementById('pinfo-inovah').textContent=`${rows.length} registros — pág ${pageI+1}/${Math.max(1,Math.ceil(rows.length/PER))}`;
+  document.getElementById('pprev-inovah').disabled=pageI===0;
+  document.getElementById('pnext-inovah').disabled=(pageI+1)*PER>=rows.length;
+}
+function prevPI(){if(pageI>0){pageI--;renderInovah()}}
+function nextPI(){if((pageI+1)*PER<getInovah().length){pageI++;renderInovah()}}
+
+// ── NF TABLE ──────────────────────────────────────────────────────────────────
+function getNF(){
+  const q=(document.getElementById('search-nf').value||'').toLowerCase();
+  return allData.filter(r=>{
+    if(r.source!=='nf')return false;
+    if(q&&!r.nome.toLowerCase().includes(q)&&!r.doc.includes(q))return false;
+    return true;
+  });
+}
+function renderNF(){
+  const rows=getNF();
+  const pr=rows.slice(pageN*PER,(pageN+1)*PER);
+  const tb=document.getElementById('tbody-nf');
+  if(!tb)return;
+  const fb=r=>r.freq?'<span class="badge '+(r.freq==='SEMANAL'?'b-sem':'b-men')+'">'+(r.freq.charAt(0)+r.freq.slice(1).toLowerCase())+'</span>':'<span style="font-size:11px;color:var(--muted)">—</span>';
+  if(!rows.length){
+    tb.innerHTML='<tr><td colspan="9" class="empty">Nenhum registro NF.</td></tr>';
+  }else{
+    tb.innerHTML=pr.map((r,i)=>`<tr>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${pageN*PER+i+1}</td>
+      <td class="doc">${r.doc}</td>
+      <td class="nome" title="${r.nome}">${r.nome}</td>
+      <td class="val">${fmtN(r.val)}</td>
+      <td class="banco">${r.banco}</td>
+      <td class="banco">${r.ag}</td>
+      <td class="banco">${r.conta}</td>
+      <td>${fb(r)}</td>
+      <td style="font-size:12px;color:var(--muted)">${r.assistente}</td>
+    </tr>`).join('');
+  }
+  document.getElementById('pinfo-nf').textContent=`${rows.length} registros — pág ${pageN+1}/${Math.max(1,Math.ceil(rows.length/PER))}`;
+  document.getElementById('pprev-nf').disabled=pageN===0;
+  document.getElementById('pnext-nf').disabled=(pageN+1)*PER>=rows.length;
+}
+function prevPN(){if(pageN>0){pageN--;renderNF()}}
+function nextPN(){if((pageN+1)*PER<getNF().length){pageN++;renderNF()}}
+
+// ── LANÇAMENTOS MANUAIS ──────────────────────────────────────────────────────
+let manualDataI=[]; // Inovah manuais
+let manualDataN=[]; // NF manuais
+
+function addManualI(){
+  const doc=document.getElementById('m-doc-i').value.trim();
+  const nome=document.getElementById('m-nome-i').value.trim();
+  const valStr=document.getElementById('m-val-i').value.trim().replace(',','.');
+  const val=parseFloat(valStr);
+  const banco=document.getElementById('m-banco-i').value.trim();
+  const ag=document.getElementById('m-ag-i').value.trim();
+  const conta=document.getElementById('m-conta-i').value.trim();
+  const poup=document.getElementById('m-poup-i').value;
+  const pix=document.getElementById('m-pix-i').value.trim();
+  const obs=document.getElementById('m-obs-i').value.trim();
+
+  if(!nome){showMsg('Informe o nome do corretor.',true);return;}
+  if(!val||isNaN(val)||val<=0){showMsg('Informe um valor válido.',true);return;}
+  if(!banco){showMsg('Informe o banco.',true);return;}
+  if(!ag){showMsg('Informe a agência.',true);return;}
+  if(!conta){showMsg('Informe a conta.',true);return;}
+
+  manualDataI.push({doc,nome,val,banco,ag,conta,poup,pix,obs});
+  renderManualI();renderResumo();
+  // Clear fields
+  ['m-doc','m-nome','m-val','m-banco','m-ag','m-conta','m-pix','m-obs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m-poup-i').value='';
+  showMsg('✓ Lançamento adicionado.');
+}
+
+function removeManualI(i){
+  manualDataI.splice(i,1);
+  renderManualI();renderResumo();
+}
+
+function clearManualI(){
+  if(!confirm('Limpar todos os lançamentos manuais?'))return;
+  manualDataI=[];
+  renderManualI();renderResumo();
+}
+
+function renderManualI(){
+  const cnt=manualDataI.length;
+  document.getElementById('manual-count-i').textContent=cnt+' lançamento'+(cnt!==1?'s':'');
+  document.getElementById('btn-export-manual-i').style.display=cnt?'':'none';
+  document.getElementById('btn-clear-manual-i').style.display=cnt?'':'none';
+  const el=document.getElementById('manual-list-i');
+  if(!cnt){el.innerHTML='<div class="manual-empty">Nenhum lançamento manual adicionado.</div>';return;}
+  el.innerHTML=manualDataI.map((r,i)=>`
+    <div class="manual-item">
+      <span class="mi-doc">${r.doc||'—'}</span>
+      <span class="mi-nome">${r.nome}</span>
+      <span class="mi-val">R$ ${fmtN(r.val)}</span>
+      <span style="font-size:11px;color:var(--muted)">${r.banco} / ${r.ag} / ${r.conta}</span>
+      ${r.poup?'<span class="badge" style="background:var(--gold-light);color:#7A5010;font-size:10px">Poupança</span>':''}
+      ${r.pix?'<span style="font-size:10px;color:var(--blue)">PIX</span>':''}
+      <span class="mi-del" onclick="removeManualI(${i})" title="Remover">×</span>
+    </div>`).join('');
+}
+
+function exportManualInovah(){
+  if(!manualDataI.length){alert('Nenhum lançamento manual.');return;}
+  const w=document.getElementById('week-input').value||'semana';
+  const h='Documento;Nome;Valor;Banco;Agencia com digito;Conta com digito;Conta Poupanca;Chave Pix;Observacao\n';
+  const rows=manualDataI.map(r=>[
+    cleanDoc(r.doc),r.nome,r.val.toFixed(2),r.banco,r.ag,r.conta,r.poup||'',r.pix||'',r.obs||''
+  ].join(';')).join('\n');
+  dl('\uFEFF'+h+rows,'Inovah_Manual_'+w.replace(/\//g,'-')+'.csv');
+}
+
+function renderResumo(){
+  const iv=calcInovah(allData);
+  const nf=allData.filter(r=>r.source==='nf');
+  const sn=nf.reduce((a,r)=>a+r.val,0);
+  document.getElementById('r-adm').textContent=fmt(iv.vp-iv.liq);
+  document.getElementById('r-taxa-lbl').textContent='Taxa Bancária ('+(iv.n+iv.nMan)+' × R$2,00)';
+  document.getElementById('r-taxa').textContent=fmt(iv.taxa);
+  document.getElementById('r-liq').textContent=fmt(iv.liqSis);
+  const manualRow=document.getElementById('r-manual-row');
+  if(iv.liqMan>0){
+    manualRow.style.display='flex';
+    document.getElementById('r-manual-total').textContent=fmt(iv.liqMan);
+  } else {
+    manualRow.style.display='none';
+  }
+  document.getElementById('r-liq-total-lbl').textContent=iv.liqMan>0?'Σ Total Líquido (SIS + Manuais)':'Σ Total Líquido';
+  document.getElementById('r-liq-total').style.display=iv.liqMan>0?'flex':'none';
+  document.getElementById('r-liq-total').textContent=fmt(iv.liq);
+  document.getElementById('r-inovah-total').textContent=fmt(iv.pedido);
+  const snMan=manualDataN.reduce((a,r)=>a+r.val,0);
+  const snTotal=sn+snMan;
+  document.getElementById('r-nf-total').textContent=fmt(snTotal);
+  document.getElementById('r-geral').textContent=fmt(iv.pedido+snTotal);
+
+  const mkRows=(arr,sum)=>arr.length
+    ?arr.map(r=>`<div class="rrow"><span class="rl" title="${r.nome}">${r.nome}</span><span class="rv">${fmtN(r.val)}</span></div>`).join('')
+     +`<div class="rrow rtotal"><span class="rl">Total (${arr.length})</span><span class="rv">${fmt(sum)}</span></div>`
+    :'<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Sem registros</div>';
+
+  const inovah=allData.filter(r=>r.source==='inovah');
+  const manualRows=manualDataI.length?
+    manualDataI.map(r=>`<div class="rrow"><span class="rl" title="${r.nome}">${r.nome} <span style="font-size:10px;color:var(--muted)">(manual)</span></span><span class="rv">${fmtN(r.val)}</span></div>`).join('')
+    :'';
+  document.getElementById('r-inovah').innerHTML=mkRows(inovah,iv.liq)+(manualRows?'<div style="padding:6px 0;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Manuais</div>'+manualRows:'');
+  const nfManRows=manualDataN.length?manualDataN.map(r=>`<div class="rrow"><span class="rl" title="${r.nome}">${r.nome} <span style="font-size:10px;color:var(--muted)">(manual)</span></span><span class="rv">${fmtN(r.val)}</span></div>`).join(''):'';
+  document.getElementById('r-nf').innerHTML=mkRows(nf,sn)+(nfManRows?'<div style="padding:6px 0;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Manuais</div>'+nfManRows:'');
+}
+
+// ── EXPORTAR ─────────────────────────────────────────────────────────────────
+function cleanDoc(d){return(d||'').replace(/[.\-\/\s]/g,'');}
+function exportInovah(){
+  const inovah=allData.filter(r=>r.source==='inovah');
+  const todos=[...inovah,...manualDataI];
+  if(!todos.length){alert('Nenhum corretor Inovah para exportar.');return}
+  const w=document.getElementById('week-input').value||'semana';
+  const h='Documento;Nome;Valor;Banco;Agencia com digito;Conta com digito;Conta Poupanca;Chave Pix;Observacao\n';
+  const rows=todos.map(r=>{
+    const val=r.val.toFixed(2);
+    const poup=isPoupanca(r)?'SIM':'';
+    const pix=r.pix||'';
+    const obs=r.obs||'';
+    return[cleanDoc(r.doc),r.nome,val,r.banco,r.ag,r.conta,poup,pix,obs].join(';');
+  }).join('\n');
+  dl('\uFEFF'+h+rows,'Inovah_Pagamento_'+w.replace(/\//g,'-')+'.csv');
+}
+
+function exportCSVInovah(){
+  const rows=allData.filter(r=>r.source==='inovah');
+  if(!rows.length){alert('Nenhum dado Inovah.');return}
+  const w=document.getElementById('week-input').value||'semana';
+  const h='Documento;Corretor;Valor Liquido;Banco;Agencia;Conta;Poupanca;Analise;Assistente\n';
+  const body=rows.map(r=>{
+    const ag=(r.ag||'').replace(/\D/g,'');
+    const temDig=(r.conta||'').includes('-')&&(r.conta||'').split('-')[1].trim().length>0;
+    const erros=[...(ag.length!==4?['Agência inválida']:[]),...(!temDig?['Sem dígito']:[])];
+    const poup=isPoupanca(r)?'SIM':'NÃO';
+    return[cleanDoc(r.doc),r.nome,r.val.toFixed(2).replace('.',','),r.banco,r.ag,r.conta,poup,erros.length?erros.join(' | '):'OK',r.assistente].join(';');
+  }).join('\n');
+  dl('\uFEFF'+h+body,'Inovah_Completo_'+w.replace(/\//g,'-')+'.csv');
+}
+function exportCSVNF(){
+  const rows=allData.filter(r=>r.source==='nf');
+  if(!rows.length){alert('Nenhum dado NF.');return}
+  const w=document.getElementById('week-input').value||'semana';
+  const h='Documento;Corretor;Valor Liquido;Banco;Agencia;Conta;Frequencia;Assistente\n';
+  const body=rows.map(r=>[r.doc,r.nome,r.val.toFixed(2).replace('.',','),r.banco,r.ag,r.conta,r.freq||'',r.assistente].join(';')).join('\n');
+  dl('\uFEFF'+h+body,'NF_'+w.replace(/\//g,'-')+'.csv');
+}
+function exportResumoHTML(){
+  const iv=calcInovah(allData);
+  const nf=allData.filter(r=>r.source==='nf');
+  const sn=nf.reduce((a,r)=>a+r.val,0);
+  const w=document.getElementById('week-input').value||'—';
+  const today=new Date().toLocaleDateString('pt-BR');
+
+  const inovahSIS=allData.filter(r=>r.source==='inovah');
+  const inovahRows=[...inovahSIS,...manualDataI].map((r,i)=>`
+    <tr class="${i%2===0?'even':''}">
+      <td>${i+1}</td>
+      <td class="doc">${r.doc||'—'}</td>
+      <td class="nome">${r.nome}${i>=inovahSIS.length?' <span style="font-size:10px;color:#7A6A92">(manual)</span>':''}</td>
+      <td class="val">R$ ${fmtN(r.val)}</td>
+    </tr>`).join('');
+
+  const nfAll=[...nf,...manualDataN];
+  const nfRows=nfAll.map((r,i)=>`
+    <tr class="${i%2===0?'even':''}">
+      <td>${i+1}</td>
+      <td class="doc">${r.doc||'—'}</td>
+      <td class="nome">${r.nome}${i>=nf.length?' <span style="font-size:10px;color:#7A6A92">(manual)</span>':''}</td>
+      <td class="val">R$ ${fmtN(r.val)}</td>
+    </tr>`).join('');
+
+  const doc=`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Resumo Antecipação — ${w}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;color:#2A1A3E;background:#fff;padding:32px}
+  .header{display:flex;align-items:center;justify-content:space-between;padding-bottom:20px;border-bottom:3px solid #C9A84C;margin-bottom:28px}
+  .brand img{height:52px;display:block}
+  .brand p{font-size:12px;color:#7A6A92;margin-top:4px}
+  .meta{text-align:right;font-size:12px;color:#7A6A92}
+  .meta strong{color:#2A1A3E;font-size:14px}
+  .section{margin-bottom:32px}
+  .section-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7A6A92;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #DDD5E8}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  thead th{background:#5C2D6E;color:#fff;padding:8px 10px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+  tbody tr{border-bottom:.5px solid #EEE}
+  tbody tr.even{background:#F9F7FC}
+  tbody tr:hover{background:#F3EFF8}
+  td{padding:7px 10px;vertical-align:middle}
+  td.doc{font-family:monospace;font-size:11px;color:#7A6A92}
+  td.nome{font-weight:500;max-width:280px}
+  td.val{text-align:right;font-family:monospace;font-weight:600}
+  td.center{text-align:center}
+  .badge-s{background:#FBF4E0;color:#7A5010;border:1px solid #E8D49A;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+  .badge-f{background:#E6F1FB;color:#185FA5;border:1px solid #B5D4F4;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+  .resumo-box{background:#F9F7FC;border:1px solid #DDD5E8;border-radius:12px;padding:20px 24px;margin-bottom:24px}
+  .resumo-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:.5px solid #DDD5E8;font-size:13px}
+  .resumo-row:last-child{border-bottom:none}
+  .resumo-row .lbl{color:#7A6A92}
+  .resumo-row .val{font-family:monospace;font-weight:600}
+  .resumo-total{padding-top:12px;margin-top:8px;border-top:2px solid #C9A84C!important}
+  .resumo-total .lbl{color:#2A1A3E;font-weight:700;font-size:14px}
+  .resumo-total .val{color:#5C2D6E;font-size:16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .footer{margin-top:32px;padding-top:16px;border-top:1px solid #DDD5E8;font-size:11px;color:#7A6A92;text-align:center}
+  .manual-section-export{margin-top:16px;padding-top:12px;border-top:1px dashed #DDD5E8}
+  .manual-section-export .ms-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7A6A92;margin-bottom:8px}
+  @media print{body{padding:16px}.header{margin-bottom:20px}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="brand">
+    <img src="data:image/png;base64,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" alt="Affinity Corretora" style="height:64px;display:block;border-radius:8px">
+    <p style="font-size:12px;color:#7A6A92;margin-top:4px">Controle de Antecipação de Pagamentos</p>
+  </div>
+  <div class="meta">
+    <strong>Semana: ${w}</strong><br>
+    Emitido em ${today}
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Resumo Financeiro</div>
+  <div class="resumo-box">
+    <div class="resumo-row"><span class="lbl">Σ Valores Líquidos Inovah</span><span class="val">R$ ${fmtN(iv.liq)}</span></div>
+    <div class="resumo-row"><span class="lbl">Tarifa Administrativa (1%)</span><span class="val">R$ ${fmtN(iv.vp-iv.liq)}</span></div>
+    <div class="resumo-row"><span class="lbl">Valor Planilha Inovah</span><span class="val">R$ ${fmtN(iv.vp)}</span></div>
+    <div class="resumo-row"><span class="lbl">Taxa Bancária (${iv.n} × R$ 2,00)</span><span class="val">R$ ${fmtN(iv.taxa)}</span></div>
+    <div class="resumo-row"><span class="lbl">Valor Pedido Inovah</span><span class="val">R$ ${fmtN(iv.pedido)}</span></div>
+    <div class="resumo-row" style="margin-top:8px"><span class="lbl">Total NF</span><span class="val">R$ ${fmtN(sn)}</span></div>
+    <div class="resumo-row resumo-total"><span class="lbl">TOTAL GERAL</span><span class="val">R$ ${fmtN(iv.pedido+sn+manualDataN.reduce((a,r)=>a+r.val,0))}</span></div>
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="section">
+    <div class="section-title">Inovah — ${inovahSIS.length+manualDataI.length} corretores${manualDataI.length?" ("+manualDataI.length+" manuais)":""}</div>
+    <table>
+      <thead><tr><th>#</th><th>Documento</th><th>Corretor</th><th style="text-align:right">Valor</th></tr></thead>
+      <tbody>${inovahRows}</tbody>
+    </table>
+  </div>
+  <div class="section">
+    <div class="section-title">NF — ${nfAll.length} corretores${manualDataN.length?" ("+manualDataN.length+" manuais)":""}</div>
+    <table>
+      <thead><tr><th>#</th><th>Documento</th><th>Corretor</th><th style="text-align:right">Valor</th></tr></thead>
+      <tbody>${nfRows}</tbody>
+    </table>
+  </div>
+</div>
+
+<div class="footer">Affinity Corretora de Seguros &nbsp;|&nbsp; Documento gerado automaticamente &nbsp;|&nbsp; ${today}</div>
+</body></html>`;
+
+  const blob=new Blob([doc],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Resumo_Antecipacao_'+w.replace(/\//g,'-')+'.html';
+  a.click();
+}
+function addManualN(){
+  const doc=document.getElementById('m-doc-n').value.trim();
+  const nome=document.getElementById('m-nome-n').value.trim();
+  const val=parseFloat(document.getElementById('m-val-n').value.trim().replace(',','.'));
+  const banco=document.getElementById('m-banco-n').value.trim();
+  const ag=document.getElementById('m-ag-n').value.trim();
+  const conta=document.getElementById('m-conta-n').value.trim();
+  const freq=document.getElementById('m-freq-n').value;
+  const pix=document.getElementById('m-pix-n').value.trim();
+  const obs=document.getElementById('m-obs-n').value.trim();
+  if(!nome){showMsg('Informe o nome.',true);return;}
+  if(!val||isNaN(val)||val<=0){showMsg('Informe um valor válido.',true);return;}
+  if(!banco||!ag||!conta){showMsg('Informe os dados bancários.',true);return;}
+  manualDataN.push({doc,nome,val,banco,ag,conta,freq,pix,obs,source:'nf'});
+  renderManualN();renderResumo();
+  ['m-doc-n','m-nome-n','m-val-n','m-banco-n','m-ag-n','m-conta-n','m-pix-n','m-obs-n'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m-freq-n').value='';
+  showMsg('✓ Lançamento NF adicionado.');
+}
+function removeManualN(i){manualDataN.splice(i,1);renderManualN();renderResumo();}
+function clearManualN(){if(!confirm('Limpar todos os lançamentos manuais NF?'))return;manualDataN=[];renderManualN();renderResumo();}
+function renderManualN(){
+  const cnt=manualDataN.length;
+  document.getElementById('manual-count-n').textContent=cnt+' lançamento'+(cnt!==1?'s':'');
+  document.getElementById('btn-export-manual-n').style.display=cnt?'':'none';
+  document.getElementById('btn-clear-manual-n').style.display=cnt?'':'none';
+  const el=document.getElementById('manual-list-n');
+  if(!cnt){el.innerHTML='<div class="manual-empty">Nenhum lançamento manual NF adicionado.</div>';return;}
+  el.innerHTML=manualDataN.map((r,i)=>`
+    <div class="manual-item">
+      <span class="mi-doc">${r.doc||'—'}</span>
+      <span class="mi-nome">${r.nome}</span>
+      <span class="mi-val">R$ ${fmtN(r.val)}</span>
+      <span style="font-size:11px;color:var(--muted)">${r.banco} / ${r.ag} / ${r.conta}</span>
+      ${r.freq?'<span class="badge b-sem" style="font-size:10px">'+r.freq.charAt(0)+r.freq.slice(1).toLowerCase()+'</span>':''}
+      ${r.pix?'<span style="font-size:10px;color:var(--blue)">PIX</span>':''}
+      <span class="mi-del" onclick="removeManualN(${i})" title="Remover">×</span>
+    </div>`).join('');
+}
+function exportManualNF(){
+  if(!manualDataN.length){alert('Nenhum lançamento manual NF.');return;}
+  const w=document.getElementById('week-input').value||'semana';
+  const h='Documento;Nome;Valor;Banco;Agencia;Conta;Frequencia;Chave Pix;Observacao\n';
+  const rows=manualDataN.map(r=>[r.doc,r.nome,r.val.toFixed(2),r.banco,r.ag,r.conta,r.freq||'',r.pix||'',r.obs||''].join(';')).join('\n');
+  dl('\uFEFF'+h+rows,'NF_Manual_'+w.replace(/\//g,'-')+'.csv');
+}
+function exportCSV(){
+  if(!allData.length){alert('Nenhum dado para exportar.');return}
+  const w=document.getElementById('week-input').value||'semana';
+  const h='Documento;Corretor;Valor Liquido;Banco;Agencia;Conta;Tipo;Classificacao;Poupanca;Frequencia;Analise;Assistente\n';
+  const rows=allData.map(r=>{
+    const ag=(r.ag||'').replace(/\D/g,'');
+    const temDig=(r.conta||'').includes('-')&&(r.conta||'').split('-')[1].trim().length>0;
+    const erros=r.source==='inovah'?[...(ag.length!==4?['Agência inválida']:[]),...(!temDig?['Sem dígito']:[])]:[];
+    const an=r.source!=='inovah'?'N/A':erros.length?erros.join(' | '):'OK';
+    const poup=r.source==='inovah'?(isPoupanca(r)?'SIM':'NÃO'):'N/A';
+    return[r.doc,r.nome,r.val.toFixed(2).replace('.',','),r.banco,r.ag,r.conta,r.tipo,r.source,poup,r.freq||'',an,r.assistente].join(';');
+  }).join('\n');
+  dl('\uFEFF'+h+rows,'Antecipacao_'+w.replace(/\//g,'-')+'.csv');
+}
+
+function dl(content,filename){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8'}));
+  a.download=filename;a.click();
+}
+
+function copiar(){
+  const iv=calcInovah(allData);
+  const sn=allData.filter(r=>r.source==='nf').reduce((a,r)=>a+r.val,0);
+  const w=document.getElementById('week-input').value||'—';
+  const manualLine=iv.liqMan>0?`\nLançamentos Manuais: ${fmt(iv.liqMan)}`:''; 
+  const txt=`RESUMO FINANCEIRO — ${w}\n\nINOVAH\nΣ Líquidos SIS: ${fmt(iv.liqSis)}${manualLine}\nΣ Total Líquido: ${fmt(iv.liq)}\nTarifa Adm (1%): ${fmt(iv.vp-iv.liq)}\nTaxa Bancária (${iv.n+iv.nMan} x R$2,00): ${fmt(iv.taxa)}\nValor Pedido Inovah: ${fmt(iv.pedido)}\n\nTotal NF: ${fmt(sn)}\n\nTOTAL GERAL: ${fmt(iv.pedido+sn+manualDataN.reduce((a,r)=>a+r.val,0))}`;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);
+  });
+}
+
+// ── EMISSORES ────────────────────────────────────────────────────────────────
+
+renderInovah();
+renderNF();
+</script>
+</body>
+</html>
