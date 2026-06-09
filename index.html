@@ -288,19 +288,32 @@ tr.novo-row{background:#FFF5F5!important}
       <span class="icnt" id="manual-count-i">0 lançamentos</span>
     </div>
     <div class="manual-body">
-      <div class="manual-grid wide">
+      <div class="manual-grid" style="grid-template-columns:auto 1fr 1fr 1fr;margin-bottom:12px">
+        <div class="mfield">
+          <label>Tipo</label>
+          <select id="m-tipo-i" onchange="toggleTipoI()" style="min-width:110px">
+            <option value="banco">Bancário</option>
+            <option value="pix">PIX</option>
+          </select>
+        </div>
         <div class="mfield"><label>Documento (CPF/CNPJ)</label><input type="text" id="m-doc-i" placeholder="Ex: 12345678901"></div>
         <div class="mfield"><label>Nome</label><input type="text" id="m-nome-i" placeholder="Nome completo"></div>
         <div class="mfield"><label>Valor</label><input type="text" id="m-val-i" placeholder="Ex: 1500.00"></div>
-        <div class="mfield"><label>Banco</label><input type="text" id="m-banco-i" placeholder="Ex: 033"></div>
       </div>
-      <div class="manual-grid wide">
-        <div class="mfield"><label>Agência com dígito</label><input type="text" id="m-ag-i" placeholder="Ex: 0436"></div>
-        <div class="mfield"><label>Conta com dígito</label><input type="text" id="m-conta-i" placeholder="Ex: 12345-6"></div>
-        <div class="mfield"><label>Conta Poupança</label>
-          <select id="m-poup-i"><option value="">Não</option><option value="SIM">Sim</option></select>
+      <div id="m-banco-fields-i">
+        <div class="manual-grid wide">
+          <div class="mfield"><label>Banco</label><input type="text" id="m-banco-i" placeholder="Ex: 033"></div>
+          <div class="mfield"><label>Agência com dígito</label><input type="text" id="m-ag-i" placeholder="Ex: 0436"></div>
+          <div class="mfield"><label>Conta com dígito</label><input type="text" id="m-conta-i" placeholder="Ex: 12345-6"></div>
+          <div class="mfield"><label>Conta Poupança</label>
+            <select id="m-poup-i"><option value="">Não</option><option value="SIM">Sim</option></select>
+          </div>
         </div>
-        <div class="mfield"><label>Chave Pix (opcional)</label><input type="text" id="m-pix-i" placeholder="CPF, e-mail ou chave"></div>
+      </div>
+      <div id="m-pix-fields-i" style="display:none">
+        <div class="manual-grid" style="grid-template-columns:1fr">
+          <div class="mfield"><label>Chave PIX</label><input type="text" id="m-pix-i" placeholder="CPF, e-mail, telefone ou chave aleatória"></div>
+        </div>
       </div>
       <div class="mfield" style="margin-bottom:12px"><label>Observação (opcional)</label><input type="text" id="m-obs-i" placeholder="Observação para o pagamento"></div>
       <div style="display:flex;gap:10px">
@@ -319,19 +332,35 @@ tr.novo-row{background:#FFF5F5!important}
       <span class="icnt" id="manual-count-n">0 lançamentos</span>
     </div>
     <div class="manual-body">
-      <div class="manual-grid wide">
+      <div class="manual-grid" style="grid-template-columns:auto 1fr 1fr 1fr;margin-bottom:12px">
+        <div class="mfield">
+          <label>Tipo</label>
+          <select id="m-tipo-n" onchange="toggleTipoN()" style="min-width:110px">
+            <option value="banco">Bancário</option>
+            <option value="pix">PIX</option>
+          </select>
+        </div>
         <div class="mfield"><label>Documento (CPF/CNPJ)</label><input type="text" id="m-doc-n" placeholder="Ex: 12345678901"></div>
         <div class="mfield"><label>Nome</label><input type="text" id="m-nome-n" placeholder="Nome completo"></div>
         <div class="mfield"><label>Valor</label><input type="text" id="m-val-n" placeholder="Ex: 1500.00"></div>
-        <div class="mfield"><label>Banco</label><input type="text" id="m-banco-n" placeholder="Ex: 033"></div>
       </div>
-      <div class="manual-grid wide">
-        <div class="mfield"><label>Agência com dígito</label><input type="text" id="m-ag-n" placeholder="Ex: 0436"></div>
-        <div class="mfield"><label>Conta com dígito</label><input type="text" id="m-conta-n" placeholder="Ex: 12345-6"></div>
-        <div class="mfield"><label>Frequência</label>
-          <select id="m-freq-n"><option value="">—</option><option value="SEMANAL">Semanal</option><option value="MENSAL">Mensal</option></select>
+      <div id="m-banco-fields-n">
+        <div class="manual-grid wide">
+          <div class="mfield"><label>Banco</label><input type="text" id="m-banco-n" placeholder="Ex: 033"></div>
+          <div class="mfield"><label>Agência com dígito</label><input type="text" id="m-ag-n" placeholder="Ex: 0436"></div>
+          <div class="mfield"><label>Conta com dígito</label><input type="text" id="m-conta-n" placeholder="Ex: 12345-6"></div>
+          <div class="mfield"><label>Frequência</label>
+            <select id="m-freq-n"><option value="">—</option><option value="SEMANAL">Semanal</option><option value="MENSAL">Mensal</option></select>
+          </div>
         </div>
-        <div class="mfield"><label>Chave Pix (opcional)</label><input type="text" id="m-pix-n" placeholder="CPF, e-mail ou chave"></div>
+      </div>
+      <div id="m-pix-fields-n" style="display:none">
+        <div class="manual-grid" style="grid-template-columns:1fr 1fr;gap:10px">
+          <div class="mfield"><label>Chave PIX</label><input type="text" id="m-pix-n" placeholder="CPF, e-mail, telefone ou chave aleatória"></div>
+          <div class="mfield"><label>Frequência</label>
+            <select id="m-freq-pix-n"><option value="">—</option><option value="SEMANAL">Semanal</option><option value="MENSAL">Mensal</option></select>
+          </div>
+        </div>
       </div>
       <div class="mfield" style="margin-bottom:12px"><label>Observação (opcional)</label><input type="text" id="m-obs-n" placeholder="Observação para o pagamento"></div>
       <div style="display:flex;gap:10px">
@@ -953,30 +982,40 @@ function nextPN(){if((pageN+1)*PER<getNF().length){pageN++;renderNF()}}
 let manualDataI=[]; // Inovah manuais
 let manualDataN=[]; // NF manuais
 
+function toggleTipoI(){
+  const isPix=document.getElementById('m-tipo-i').value==='pix';
+  document.getElementById('m-banco-fields-i').style.display=isPix?'none':'block';
+  document.getElementById('m-pix-fields-i').style.display=isPix?'block':'none';
+}
+function toggleTipoN(){
+  const isPix=document.getElementById('m-tipo-n').value==='pix';
+  document.getElementById('m-banco-fields-n').style.display=isPix?'none':'block';
+  document.getElementById('m-pix-fields-n').style.display=isPix?'block':'none';
+}
 function addManualI(){
+  const isPix=document.getElementById('m-tipo-i').value==='pix';
   const doc=document.getElementById('m-doc-i').value.trim();
   const nome=document.getElementById('m-nome-i').value.trim();
-  const valStr=document.getElementById('m-val-i').value.trim().replace(',','.');
-  const val=parseFloat(valStr);
-  const banco=document.getElementById('m-banco-i').value.trim();
-  const ag=document.getElementById('m-ag-i').value.trim();
-  const conta=document.getElementById('m-conta-i').value.trim();
-  const poup=document.getElementById('m-poup-i').value;
-  const pix=document.getElementById('m-pix-i').value.trim();
+  const val=parseFloat(document.getElementById('m-val-i').value.trim().replace(',','.'));
+  const banco=isPix?'':document.getElementById('m-banco-i').value.trim();
+  const ag=isPix?'':document.getElementById('m-ag-i').value.trim();
+  const conta=isPix?'':document.getElementById('m-conta-i').value.trim();
+  const poup=isPix?'':document.getElementById('m-poup-i').value;
+  const pix=isPix?document.getElementById('m-pix-i').value.trim():'';
   const obs=document.getElementById('m-obs-i').value.trim();
 
   if(!nome){showMsg('Informe o nome do corretor.',true);return;}
   if(!val||isNaN(val)||val<=0){showMsg('Informe um valor válido.',true);return;}
-  if(!banco){showMsg('Informe o banco.',true);return;}
-  if(!ag){showMsg('Informe a agência.',true);return;}
-  if(!conta){showMsg('Informe a conta.',true);return;}
+  if(isPix&&!pix){showMsg('Informe a chave PIX.',true);return;}
+  if(!isPix&&(!banco||!ag||!conta)){showMsg('Informe banco, agência e conta.',true);return;}
 
-  manualDataI.push({doc,nome,val,banco,ag,conta,poup,pix,obs});
+  manualDataI.push({doc,nome,val,banco,ag,conta,poup,pix,obs,tipo:isPix?'pix':'banco'});
   renderManualI();renderResumo();
-  // Clear fields
-  ['m-doc-i','m-nome-i','m-val-i','m-banco-i','m-ag-i','m-conta-i','m-pix-i','m-obs-i'].forEach(id=>document.getElementById(id).value='');
+  ['m-doc-i','m-nome-i','m-val-i','m-banco-i','m-ag-i','m-conta-i','m-pix-i','m-obs-i'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('m-poup-i').value='';
-  showMsg('✓ Lançamento adicionado.');
+  document.getElementById('m-tipo-i').value='banco';
+  toggleTipoI();
+  showMsg('✓ Lançamento Inovah adicionado.');
 }
 
 function removeManualI(i){
@@ -1225,13 +1264,20 @@ function addManualN(){
   const freq=document.getElementById('m-freq-n').value;
   const pix=document.getElementById('m-pix-n').value.trim();
   const obs=document.getElementById('m-obs-n').value.trim();
+  const tipoN=document.getElementById('m-tipo-n').value;
+  const isPixN=tipoN==='pix';
   if(!nome){showMsg('Informe o nome.',true);return;}
   if(!val||isNaN(val)||val<=0){showMsg('Informe um valor válido.',true);return;}
-  if(!banco||!ag||!conta){showMsg('Informe os dados bancários.',true);return;}
-  manualDataN.push({doc,nome,val,banco,ag,conta,freq,pix,obs,source:'nf'});
+  if(isPixN&&!pix){showMsg('Informe a chave PIX.',true);return;}
+  if(!isPixN&&(!banco||!ag||!conta)){showMsg('Informe os dados bancários.',true);return;}
+  const freqFinal=isPixN?(document.getElementById('m-freq-pix-n')?document.getElementById('m-freq-pix-n').value:freq):freq;
+  manualDataN.push({doc,nome,val,banco:isPixN?'':banco,ag:isPixN?'':ag,conta:isPixN?'':conta,freq:freqFinal,pix,obs,source:'nf',tipo:tipoN});
   renderManualN();renderResumo();
-  ['m-doc-n','m-nome-n','m-val-n','m-banco-n','m-ag-n','m-conta-n','m-pix-n','m-obs-n'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('m-freq-n').value='';
+  ['m-doc-n','m-nome-n','m-val-n','m-banco-n','m-ag-n','m-conta-n','m-pix-n','m-obs-n'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const fq=document.getElementById('m-freq-n');if(fq)fq.value='';
+  const fpx=document.getElementById('m-freq-pix-n');if(fpx)fpx.value='';
+  document.getElementById('m-tipo-n').value='banco';
+  toggleTipoN();
   showMsg('✓ Lançamento NF adicionado.');
 }
 function removeManualN(i){manualDataN.splice(i,1);renderManualN();renderResumo();}
