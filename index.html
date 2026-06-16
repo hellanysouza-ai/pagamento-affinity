@@ -120,6 +120,9 @@ td.empty{text-align:center;padding:44px;color:var(--muted);font-size:13px}
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--purple);color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:100;font-family:var(--mono)}
 .toast.show{opacity:1}
+tr.dup-row{background:#FFF0F0!important}
+tr.dup-row:hover{background:#FFE5E5!important}
+.badge-dup{background:#FCEBEB;color:#A32D2D;border:1px solid #F7C1C1;display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;margin-left:4px}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center}
 .modal{background:var(--surface);border-radius:var(--rl);padding:28px;width:520px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,0.2)}
 .modal-title{font-size:15px;font-weight:600;margin-bottom:20px;color:var(--text);display:flex;align-items:center;gap:8px}
@@ -261,6 +264,7 @@ tr.novo-row{background:#FFF5F5!important}
     <div class="tbar">
       <span class="tbar-title">Corretores Inovah</span>
       <span class="chip err" id="chip-err-iv" onclick="toggleErrIv()">⚠ Com erro</span>
+      <span class="chip" id="chip-dup-iv" onclick="toggleDupIv()" style="border-color:#F7C1C1;color:#A32D2D">⚠ Duplicados</span>
       <span class="chip" id="chip-novo-iv" onclick="toggleNovoIv()" style="border-color:#F7C1C1;color:var(--red)">🔴 Novos (&lt;90d)</span>
       <span class="chip" id="chip-poupa-iv" onclick="togglePoupaIv()" style="border-color:#E8D49A;color:#7A5010">Poupança</span>
       <button class="btn2" onclick="exportInovah()" style="font-size:12px;padding:6px 14px">↓ Pagamento</button>
@@ -836,7 +840,7 @@ function analise(r){
 // ── FILTRO / TABELA ─────────────────────────────────────────────────────────
 function setF(f){
   filt=f;page=0;
-  ['all','inovah','nf','err'].forEach(x=>{
+  ['all','inovah','nf','err','dup-iv'].forEach(x=>{
     const el=document.getElementById('chip-'+x);
     if(el)el.classList.toggle('on',x===f);
   });
@@ -866,7 +870,7 @@ function renderT(){
     tbody.innerHTML=pageRows.map((r,i)=>`<tr class="${poupa(r)?'poupa':''}">
       <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${page*PER+i+1}</td>
       <td class="doc">${r.doc}</td>
-      <td class="nome" title="${r.nome}">${r.nome}</td>
+      <td class="nome" title="${r.nome}">${r.nome}${dup?'<span class="badge-dup">⚠ duplicado</span>':''}</td>
       <td><span class="badge ${r.source==='inovah'?'b-inovah':'b-nf'}">${r.source==='inovah'?'Inovah':'NF'}</span></td>
       <td class="val">${fmtN(r.val)}</td>
       <td class="banco">${r.banco}</td>
@@ -892,11 +896,16 @@ function nextP(){if((page+1)*PER<getFiltered().length){page++;renderT()}}
 // ── RESUMO ──────────────────────────────────────────────────────────────────
 
 // ── SUB-TABS ─────────────────────────────────────────────────────────────────
-let subTab='inovah', pageI=0, pageN=0, errIv=false, novoIv=false, poupaIv=false;
+let subTab='inovah', pageI=0, pageN=0, errIv=false, novoIv=false, poupaIv=false, dupIv=false;
 
 function togglePoupaIv(){
   poupaIv=!poupaIv;
   document.getElementById('chip-poupa-iv').classList.toggle('on',poupaIv);
+  pageI=0;renderInovah();
+}
+function toggleDupIv(){
+  dupIv=!dupIv;
+  document.getElementById('chip-dup-iv').classList.toggle('on',dupIv);
   pageI=0;renderInovah();
 }
 function toggleNovoIv(){
@@ -936,6 +945,11 @@ function getInovah(){
       if(!(dias!==null&&dias>=0&&dias<=90))return false;
     }
     if(poupaIv&&!isPoupanca(r))return false;
+    if(dupIv){
+      const allIv=allData.filter(x=>x.source==='inovah');
+      const nc={};allIv.forEach(x=>{const k=x.nome.toUpperCase().trim();nc[k]=(nc[k]||0)+1;});
+      if((nc[r.nome.toUpperCase().trim()]||0)<=1)return false;
+    }
     if(q&&!r.nome.toLowerCase().includes(q)&&!r.doc.includes(q))return false;
     return true;
   });
@@ -945,6 +959,11 @@ function renderInovah(){
   const pr=rows.slice(pageI*PER,(pageI+1)*PER);
   const tb=document.getElementById('tbody-inovah');
   if(!tb)return;
+  // Detect duplicates by name across ALL inovah data (not just current page)
+  const allInovah=allData.filter(r=>r.source==='inovah');
+  const nameCount={};
+  allInovah.forEach(r=>{const k=r.nome.toUpperCase().trim();nameCount[k]=(nameCount[k]||0)+1;});
+  const isDup=r=>nameCount[r.nome.toUpperCase().trim()]>1;
   const poupa=isPoupanca;
   if(!rows.length){
     tb.innerHTML='<tr><td colspan="11" class="empty">Nenhum registro Inovah.</td></tr>';
@@ -954,7 +973,8 @@ function renderInovah(){
       const dias=diasDesde(incl);
       const isNovo=dias!==null&&dias>=0&&dias<=90;
       const inclCell=(dias!==null&&dias>=0&&dias<=90)?`<span class="badge badge-novo">🔴 ${dias}d</span>`:'<span style="font-size:11px;color:var(--muted)">—</span>';
-      return`<tr class="${poupa(r)?'poupa':isNovo?'novo-row':''}">
+      const dup=isDup(r);
+      return`<tr class="${poupa(r)?'poupa':isNovo?'novo-row':dup?'dup-row':''}">
       <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${pageI*PER+i+1}</td>
       <td class="doc">${r.doc}</td>
       <td class="nome" title="${r.nome}">${r.nome}</td>
