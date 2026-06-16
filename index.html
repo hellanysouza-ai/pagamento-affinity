@@ -447,6 +447,7 @@ tr.novo-row{background:#FFF5F5!important}
     <div class="modal-title">✏️ Editar Dados Bancários</div>
     <input type="hidden" id="edit-idx">
     <div class="modal-grid">
+      <div class="mfield"><label>Documento (CPF/CNPJ)</label><input type="text" id="edit-doc" placeholder="Ex: 12345678901"></div>
       <div class="mfield"><label>Banco</label><input type="text" id="edit-banco" placeholder="Ex: 033"></div>
       <div class="mfield"><label>Agência com dígito</label><input type="text" id="edit-ag" placeholder="Ex: 0436"></div>
       <div class="mfield"><label>Conta com dígito</label><input type="text" id="edit-conta" placeholder="Ex: 12345-6"></div>
@@ -819,7 +820,8 @@ function showMsg(msg,err){
 function temErro(r){
   if(r.source!=='inovah')return false;
   const ag=(r.ag||'').replace(/\D/g,'');
-  const temDig=(r.conta||'').includes('-')&&(r.conta||'').split('-')[1].trim().length>0;
+  const partes=(r.conta||'').split('-');
+  const temDig=partes.length>1&&partes[partes.length-1].trim().length===1;
   const dias=diasDesde(getInclusao(r.doc,r.nome,r.codCorr));
   const isNovo=dias!==null&&dias>=0&&dias<=90;
   return ag.length!==4||!temDig||isNovo;
@@ -827,7 +829,8 @@ function temErro(r){
 function analise(r){
   if(r.source!=='inovah')return'<span style="font-size:11px;color:var(--muted)">N/A</span>';
   const ag=(r.ag||'').replace(/\D/g,'');
-  const temDig=(r.conta||'').includes('-')&&(r.conta||'').split('-')[1].trim().length>0;
+  const partes=(r.conta||'').split('-');
+  const temDig=partes.length>1&&partes[partes.length-1].trim().length===1;
   const erros=[];
   if(ag.length!==4)erros.push('Agência: '+ag.length+' dígito'+(ag.length!==1?'s':''));
   if(!temDig)erros.push('Conta sem dígito');
@@ -1120,6 +1123,7 @@ function openEditModal(idx){
   const r=allData[idx];
   if(!r)return;
   document.getElementById('edit-idx').value=idx;
+  document.getElementById('edit-doc').value=r.doc||'';
   document.getElementById('edit-banco').value=r.banco||'';
   document.getElementById('edit-ag').value=r.ag||'';
   document.getElementById('edit-conta').value=r.conta||'';
@@ -1132,6 +1136,7 @@ function closeEditModal(){
 function saveEdit(){
   const idx=parseInt(document.getElementById('edit-idx').value);
   if(isNaN(idx)||!allData[idx])return;
+  allData[idx].doc=document.getElementById('edit-doc').value.trim().replace(/[.\-\/\s]/g,'');
   allData[idx].banco=document.getElementById('edit-banco').value.trim();
   allData[idx].ag=document.getElementById('edit-ag').value.trim();
   allData[idx].conta=document.getElementById('edit-conta').value.trim();
@@ -1203,7 +1208,8 @@ function exportCSVInovah(){
   const h='Documento;Corretor;Valor Liquido;Banco;Agencia;Conta;Poupanca;Analise;Assistente\n';
   const body=rows.map(r=>{
     const ag=(r.ag||'').replace(/\D/g,'');
-    const temDig=(r.conta||'').includes('-')&&(r.conta||'').split('-')[1].trim().length>0;
+    const partes=(r.conta||'').split('-');
+  const temDig=partes.length>1&&partes[partes.length-1].trim().length===1;
     const erros=[...(ag.length!==4?['Agência inválida']:[]),...(!temDig?['Sem dígito']:[])];
     const poup=isPoupanca(r)?'SIM':'NÃO';
     return[cleanDoc(r.doc),r.nome,r.val.toFixed(2).replace('.',','),r.banco,r.ag,r.conta,poup,erros.length?erros.join(' | '):'OK',r.assistente].join(';');
@@ -1395,7 +1401,8 @@ function exportCSV(){
   const h='Documento;Corretor;Valor Liquido;Banco;Agencia;Conta;Tipo;Classificacao;Poupanca;Frequencia;Analise;Assistente\n';
   const rows=allData.map(r=>{
     const ag=(r.ag||'').replace(/\D/g,'');
-    const temDig=(r.conta||'').includes('-')&&(r.conta||'').split('-')[1].trim().length>0;
+    const partes=(r.conta||'').split('-');
+  const temDig=partes.length>1&&partes[partes.length-1].trim().length===1;
     const erros=r.source==='inovah'?[...(ag.length!==4?['Agência inválida']:[]),...(!temDig?['Sem dígito']:[])]:[];
     const an=r.source!=='inovah'?'N/A':erros.length?erros.join(' | '):'OK';
     const poup=r.source==='inovah'?(isPoupanca(r)?'SIM':'NÃO'):'N/A';
