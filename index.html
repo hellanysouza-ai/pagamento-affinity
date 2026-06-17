@@ -617,29 +617,29 @@ let baseDoc={}, baseNome={}, baseCod={};
 
 function parseXMLBase(text){
   const nd={},nn={},nc={};
-  const rowParts=text.split(/<\/ss:Row>|<\/Row>/i);
-  let first=true;
-  rowParts.forEach(rowStr=>{
-    if(first){first=false;return;}
-    if(!rowStr.includes('Data'))return;
-    const vals=Array(18).fill('');
-    let idx=0;
-    const re=/<(?:ss:)?Cell[\s\S]*?(?:ss:Index="(\d+)")?[^>]*?>[\s\S]*?<(?:ss:)?Data[^>]*?>([^<]*)<\/(?:ss:)?Data>/gi;
-    let m;
-    while((m=re.exec(rowStr))!==null){
-      if(m[1])idx=parseInt(m[1])-1;
-      if(idx<18)vals[idx]=(m[2]||'').trim();
-      idx++;
+  // Sequential cell parsing — no ss:Index in this XML format
+  const rowRe=/<Row[^>]*>([\s\S]*?)<\/Row>/gi;
+  const dataRe=/<Data[^>]*>([^<]*)<\/Data>/gi;
+  let rowMatch, first=true;
+  while((rowMatch=rowRe.exec(text))!==null){
+    if(first){first=false;continue;} // skip header
+    const rowStr=rowMatch[1];
+    const vals=[];
+    let dm;
+    dataRe.lastIndex=0;
+    while((dm=dataRe.exec(rowStr))!==null){
+      vals.push((dm[1]||'').trim());
     }
-    const cod=vals[0].trim();
-    const nome=vals[1].toUpperCase().trim();
-    const doc2=vals[2].replace(/^0+/,'');
+    if(vals.length<13)continue;
+    const cod=(vals[0]||'').trim();
+    const nome=(vals[1]||'').toUpperCase().trim();
+    const doc2=(vals[2]||'').replace(/^0+/,'');
     const incl=vals[12]?vals[12].substring(0,10):'';
-    if(!incl)return;
+    if(!incl)continue;
     if(cod)nc[cod]=incl;
     if(nome)nn[nome]=incl;
     if(doc2)nd[doc2]=incl;
-  });
+  }
   return{nd,nn,nc};
 }
 function handleBase(file){
