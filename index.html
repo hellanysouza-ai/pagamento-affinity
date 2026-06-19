@@ -227,15 +227,15 @@ tr.novo-row{background:#FFF5F5!important}
         ondragleave="this.classList.remove('drag')"
         ondrop="event.preventDefault();this.classList.remove('drag');handleRec(event.dataTransfer.files[0])">
         <input type="file" id="rec-inp" onchange="handleRec(this.files[0])">
-        <div class="uzone-title">📊 COMISSÃO SIS — Arraste o CSV aqui</div>
-        <div class="uzone-sub">CSV exportado do sistema (separador ; ou tab) — leitura até coluna S (Cód Corretor)</div>
+        <div class="uzone-title">📊 COMISSÃO SIS — Arraste o CSV ou XML aqui</div>
+        <div class="uzone-sub">CSV ou XML exportado do sistema — leitura até coluna W (Loja)</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin:10px 0">
         <div style="flex:1;height:1px;background:var(--border)"></div>
         <span style="font-size:11px;color:var(--muted)">ou cole manualmente</span>
         <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
-      <textarea id="txt-rec" placeholder="Cole aqui os dados do SIS (Ctrl+V direto do Excel)&#10;&#10;Colunas até S: Código · Status · Documento · Corretor · Valor Líquido · Titular · Banco · Agência · Dig.Ag · Conta · Dig.Conta · Tipo · Geração · Prev.Pagto · Pagamento · Assistente · ... · Valor Bruto · Cód Corretor" oninput="onPaste()" style="height:120px"></textarea>
+      <textarea id="txt-rec" placeholder="Cole aqui os dados do SIS (Ctrl+V direto do Excel)&#10;&#10;Colunas até W: Código · Status · Documento · Corretor · Valor Líquido · Titular · Banco · Agência · Dig.Ag · Conta · Dig.Conta · Tipo · Geração · Prev.Pagto · Pagamento · Assistente · Baixados até · Valor Bruto · Cód Corretor · Grade · Pré-Comissão · Transferida · Loja" oninput="onPaste()" style="height:120px"></textarea>
       <div class="info" style="margin-top:8px"><strong>Classificação automática:</strong> usa o Cód Corretor (col S) como chave principal para identificar NF, inclusão e frequência. Exportação do SIS em formato CSV (separado por ;). Quem estiver na lista de emissores → <strong style="color:var(--blue)">NF</strong>. Quem não estiver → <strong style="color:#7A5010">Inovah</strong>.</div>
     </div>
   </div>
@@ -523,7 +523,8 @@ async function carregarEmissores(){
     if(allData.length){
       allData=allData.map(r=>{
         const src=isNF(r.nome,r.codCorr)?'nf':'inovah';
-        return{...r,source:src};
+        const eq=getEquipe(r.loja||'',r.assistente||'',r.grade||'');
+        return{...r,source:src,equipe:eq};
       });
       renderInovah();renderNF();renderResumo();
     }
@@ -558,15 +559,66 @@ function handleRec(file){
   const reader=new FileReader();
   reader.onload=e=>{
     try{
-      handleRecText(e.target.result, file.name);
+      const text=e.target.result;
+      if(file.name.toLowerCase().endsWith('.xml')){
+        handleRecXML(text);
+      } else {
+        handleRecText(text, file.name);
+      }
     }catch(err){
       showMsg('⚠ Erro ao ler arquivo: '+err.message,true);
       console.error(err);
     }
   };
-  // Try latin-1 first, fallback to utf-8
   reader.readAsText(file,'latin-1');
-  reader.onerror=()=>{ const r2=new FileReader(); r2.onload=e2=>{handleRecText(e2.target.result,file.name);}; r2.readAsText(file,'utf-8'); };
+  reader.onerror=()=>{const r2=new FileReader();r2.onload=e2=>{handleRec(file);};r2.readAsText(file,'utf-8');};
+}
+
+function handleRecXML(text){
+  const rows=[];
+  const rowParts=text.split(/<\/Row>/i);
+  let first=true;
+  rowParts.forEach(rowStr=>{
+    if(first){first=false;return;}
+    if(!rowStr.includes('Data'))return;
+    // Parse with ss:Index support
+    const vals=Array(25).fill('');
+    let idx=0;
+    const cellRe=/<Cell([^>]*)>\s*<Data[^>]*>([^<]*)<\/Data>/gi;
+    let m;
+    while((m=cellRe.exec(rowStr))!==null){
+      const attrs=m[1];
+      const val=(m[2]||'').trim();
+      const idxM=attrs.match(/ss:Index="(\d+)"/);
+      if(idxM)idx=parseInt(idxM[1])-1;
+      if(idx<25)vals[idx]=val;
+      idx++;
+    }
+    // Same column mapping as CSV:
+    // 0=Código,2=Doc,3=Corretor,4=Valor,6=Banco,7=Ag,8=DigAg,9=Conta,10=DigConta
+    // 11=Tipo,15=Assistente,18=CódCorretor,19=Grade,22=Loja
+    const nome=vals[3]||'';
+    const val=parseFloat((vals[4]||'0').replace(',','.'));
+    if(!nome||val<=0)return;
+    const codCorr=vals[18]||'';
+    const loja=vals[22]||'';
+    const assistente=vals[15]||'';
+    const grade=vals[19]||'';
+    const src=isNF(nome,codCorr)?'nf':'inovah';
+    const equipe=getEquipe(loja,assistente,grade);
+    rows.push({
+      cod:vals[0]||'',doc:vals[2]||'',nome,val,
+      banco:vals[6]||'',ag:vals[7]||'',
+      conta:(vals[9]||'')+(vals[10]?'-'+vals[10]:''),
+      tipo:vals[11]||'',assistente,loja,grade,
+      codCorr,source:src,equipe,
+      freq:(emittersMap[(codCorr||'').trim()]?.freq||emittersMap[(nome||'').toUpperCase().trim()]?.freq||'')
+    });
+  });
+  if(!rows.length){showMsg('Nenhum dado válido no XML.',true);return;}
+  allData=rows;
+  finalizarProcessamento(rows);
+  showMsg('✓ XML carregado: '+rows.length+' registros.');
 }
 
 // ── CSV UPLOAD ──────────────────────────────────────────────────────────────
@@ -616,13 +668,14 @@ function parseRows(text){
         const codCorr=(cols[18]||'').trim();
         const loja=(cols[22]||'').trim();
         const assistente=(cols[15]||'').trim();
+        const grade=(cols[19]||'').trim();
         const src=isNF(cols[3],codCorr)?'nf':'inovah';
-        const equipe=getEquipe(loja,assistente);
+        const equipe=getEquipe(loja,assistente,grade);
         rows.push({
           cod:cols[0]||'',doc:cols[2]||'',nome:cols[3]||'',val,
           banco:cols[6]||'',ag:cols[7]||'',
           conta:(cols[9]||'')+(cols[10]?'-'+cols[10]:''),
-          tipo:cols[11]||'',assistente,loja,
+          tipo:cols[11]||'',assistente,loja,grade,
           codCorr,source:src,equipe,
           freq:(emittersMap[(codCorr||'').trim()]?.freq||emittersMap[(cols[3]||'').toUpperCase().trim()]?.freq||'')
         });
@@ -653,6 +706,7 @@ function calcInovah(rows){
 }
 
 function updateCards(rows){
+  rows=currentEquipe==='all'?rows:rows.filter(r=>r.equipe===currentEquipe);
   const iv=calcInovah(rows);
   const sn=rows.filter(r=>r.source==='nf').reduce((a,r)=>a+r.val,0);
   const snM=manualDataN.reduce((a,r)=>a+r.val,0);
@@ -840,12 +894,15 @@ function handleRecText(text, fname){
   showMsg('✓ Arquivo carregado: '+rows.length+' registros.');
 }
 // ── EQUIPES ──────────────────────────────────────────────────────────────────
-function getEquipe(loja, assistente){
+function getEquipe(loja, assistente, grade){
+  const g=(grade||'').toUpperCase();
   const l=(loja||'').toUpperCase();
   const a=(assistente||'').toUpperCase();
-  if(l.includes('COMPLETO')||l.includes('JUNIOR')||l.includes('PLENO')||
-     l.includes('SENIOR')||l.includes('SÊNIOR')||l.includes('GOLD'))return'completo';
+  // Completo: by grade column T
+  if(g.includes('COMPLETO'))return'completo';
+  // Rio: loja contains "RIO" OR assistente is ALVARO VARELA
   if(l.includes('RIO'))return'rio';
+  // SP: everything else
   return'sp';
 }
 function finalizarProcessamento(rows){
@@ -953,6 +1010,7 @@ function renderT(){
       <td style="text-align:center">
         ${analise(r)}
         ${temErro(r)?`<button class="btn-edit" onclick="openEditModal(${allData.indexOf(r)})" title="Editar dados bancários">✏️</button>`:''}
+        ${temErro(r)?`<button class="btn-edit" onclick="excluirPagamento(${allData.indexOf(r)})" title="Excluir do pagamento" style="color:var(--red)">🗑</button>`:''}
       </td>
       <td style="font-size:12px;color:var(--muted)">${r.assistente}</td>
     </tr>`).join('');
@@ -985,7 +1043,12 @@ function setEquipe(eq){
   const btnExp=document.getElementById('btn-export-equipe');
   if(btnExp)btnExp.style.display=eq!=='all'?'':'none';
   pageI=0;pageN=0;
-  renderInovah();renderNF();
+  // Reset sub-filters when switching equipe
+  errIv=false;novoIv=false;poupaIv=false;dupIv=false;
+  ['chip-err-iv','chip-novo-iv','chip-poupa-iv','chip-dup-iv'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.classList.remove('on');
+  });
+  renderInovah();renderNF();renderResumo();
 }
 function exportEquipe(){
   if(currentEquipe==='all')return;
@@ -1049,6 +1112,7 @@ function getInovah(){
       const nc={};allIv.forEach(x=>{const k=x.nome.toUpperCase().trim();nc[k]=(nc[k]||0)+1;});
       if((nc[r.nome.toUpperCase().trim()]||0)<=1)return false;
     }
+    if(currentEquipe!=='all'&&r.equipe!==currentEquipe)return false;
     if(q&&!r.nome.toLowerCase().includes(q)&&!r.doc.includes(q))return false;
     return true;
   });
@@ -1086,8 +1150,12 @@ function renderInovah(){
       <td style="text-align:center">
         ${analise(r)}
         ${temErro(r)?`<button class="btn-edit" onclick="openEditModal(${allData.indexOf(r)})" title="Editar dados bancários">✏️</button>`:''}
+        ${temErro(r)?`<button class="btn-edit" onclick="excluirPagamento(${allData.indexOf(r)})" title="Excluir do pagamento" style="color:var(--red)">🗑</button>`:''}
       </td>
-      <td style="font-size:11px;color:var(--muted)">${r.loja||''}</td>
+      <td style="font-size:11px;color:var(--muted)">
+        ${r.loja||''}
+        ${r.equipe&&r.equipe!=='sp'?`<span class="badge" style="font-size:9px;margin-left:4px;background:${r.equipe==='completo'?'var(--gold-light)':'var(--blue-light)'};color:${r.equipe==='completo'?'#7A5010':'var(--blue)'}">${r.equipe==='completo'?'Completo':'Rio'}</span>`:''}
+      </td>
       <td style="font-size:12px;color:var(--muted)">${r.assistente}</td>
     </tr>`;
     }).join('');
@@ -1217,6 +1285,12 @@ function exportManualInovah(){
   dl('\uFEFF'+h+rows,'Inovah_Manual_'+w.replace(/\//g,'-')+'.csv');
 }
 
+function excluirPagamento(idx){
+  if(!confirm('Excluir este corretor do pagamento? Ele não será incluído na exportação.'))return;
+  allData.splice(idx,1);
+  renderInovah();renderNF();renderResumo();
+  showMsg('✓ Corretor removido do pagamento.');
+}
 function openEditModal(idx){
   const r=allData[idx];
   if(!r)return;
