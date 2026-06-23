@@ -536,12 +536,18 @@ async function carregarEmissores(){
 
 
 function isNF(n,cod){
-  const nu=(n||'').toUpperCase().trim();
   const c=(cod||'').trim();
-  // Busca pelo CÓDIGO primeiro (mais confiável), depois pelo nome
-  if(c&&(emittersMap[c]||EMITTERS_BASE.has(c)))return true;
-  if(nu&&(emittersMap[nu]||EMITTERS_BASE.has(nu)))return true;
-  return false;
+  const mapLoaded=Object.keys(emittersMap).length>0;
+  if(mapLoaded){
+    // CSV carregado: busca SOMENTE pelo código
+    if(c)return !!(emittersMap[c]);
+    // Sem código: fallback pelo nome
+    return !!(emittersMap[(n||'').toUpperCase().trim()]);
+  } else {
+    // Sem CSV: usa EMITTERS_BASE como fallback
+    if(c&&EMITTERS_BASE.has(c))return true;
+    return EMITTERS_BASE.has((n||'').toUpperCase().trim());
+  }
 }
 function setWeek(v){document.getElementById('wbadge').textContent='Semana — '+(v||'')}
 
@@ -612,7 +618,7 @@ function handleRecXML(text){
       conta:(vals[9]||'')+(vals[10]?'-'+vals[10]:''),
       tipo:vals[11]||'',assistente,loja,grade,
       codCorr,source:src,equipe,
-      freq:(emittersMap[(codCorr||'').trim()]?.freq||emittersMap[(nome||'').toUpperCase().trim()]?.freq||'')
+      freq:(codCorr&&emittersMap[codCorr.trim()]?.freq||emittersMap[(nome||'').toUpperCase().trim()]?.freq||'')
     });
   });
   if(!rows.length){showMsg('Nenhum dado válido no XML.',true);return;}
@@ -677,7 +683,7 @@ function parseRows(text){
           conta:(cols[9]||'')+(cols[10]?'-'+cols[10]:''),
           tipo:cols[11]||'',assistente,loja,grade,
           codCorr,source:src,equipe,
-          freq:(emittersMap[(codCorr||'').trim()]?.freq||emittersMap[(cols[3]||'').toUpperCase().trim()]?.freq||'')
+          freq:(codCorr&&emittersMap[codCorr.trim()]?.freq||emittersMap[(cols[3]||'').toUpperCase().trim()]?.freq||'')
         });
       }
     }
@@ -885,7 +891,7 @@ function handleRecText(text, fname){
       conta:(cols[9]||'')+(cols[10]?'-'+cols[10]:''),
       tipo:cols[11]||'',assistente:cols[15]||'',
       codCorr,source:src,
-      freq:(emittersMap[(codCorr||'').trim()]?.freq||emittersMap[(nome||'').toUpperCase().trim()]?.freq||'')
+      freq:(codCorr&&emittersMap[codCorr.trim()]?.freq||emittersMap[(nome||'').toUpperCase().trim()]?.freq||'')
     });
   });
   if(!rows.length){showMsg('Nenhum dado válido. Verifique o arquivo.',true);return;}
