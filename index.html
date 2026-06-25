@@ -1578,6 +1578,12 @@ function exportRelatorioNF(){
   }
 
   function makeSheet(name, rows){
+    // Sort by Banco (numeric, ascending)
+    rows=rows.slice().sort((a,b)=>{
+      const ba=parseInt((a.banco||'').replace(/\D/g,''))||0;
+      const bb=parseInt((b.banco||'').replace(/\D/g,''))||0;
+      return ba-bb;
+    });
     const ws=wb.addWorksheet(name);
     WIDTHS.forEach((w,i)=>ws.getColumn(i+1).width=w);
 
@@ -1627,9 +1633,9 @@ function exportRelatorioNF(){
     return ws;
   }
 
-  // RESUMO
+  // RESUMO — with formulas linked to team sheets
   const wsR=wb.addWorksheet('RESUMO');
-  wsR.getColumn(1).width=20;wsR.getColumn(2).width=12;wsR.getColumn(3).width=18;
+  wsR.getColumn(1).width=22;wsR.getColumn(2).width=14;wsR.getColumn(3).width=20;
   wsR.mergeCells(1,1,1,3);
   const rt=wsR.getCell(1,1);
   rt.value='RESUMO - '+w;
@@ -1638,22 +1644,39 @@ function exportRelatorioNF(){
   rt.alignment={horizontal:'center',vertical:'middle'};
   wsR.getRow(1).height=26;
   ['Equipe','Corretores','Total NF'].forEach((h,i)=>hdrCell(wsR.getCell(2,i+1),h));
-  const teamList=[['Affinity SP',teams.sp],['Affinity RJ',teams.rio],['Completo',teams.comp]];
-  teamList.forEach(([eq,rows],ri)=>{
+
+  // Each team: name, sheet name, row count
+  const teamDefs=[
+    ['Affinity SP', 'AFFINITY - SP', teams.sp.length],
+    ['Affinity RJ', 'AFFINITY - RJ', teams.rio.length],
+    ['Completo',    'COMPLETO',       teams.comp.length]
+  ];
+  const brdN={top:{style:'thin',color:{argb:'FFCCCCCC'}},bottom:{style:'thin',color:{argb:'FFCCCCCC'}},left:{style:'thin',color:{argb:'FFCCCCCC'}},right:{style:'thin',color:{argb:'FFCCCCCC'}}};
+
+  teamDefs.forEach(([eq, sheetName, cnt], ri)=>{
     const r=ri+3;
-    wsR.getCell(r,1).value=eq;
-    wsR.getCell(r,2).value=rows.length;wsR.getCell(r,2).alignment={horizontal:'center'};
-    wsR.getCell(r,3).value=rows.reduce((a,x)=>a+(x.val||0),0);
-    wsR.getCell(r,3).numFmt='R$ #,##0.00';wsR.getCell(r,3).alignment={horizontal:'right'};
-    [1,2,3].forEach(c=>{wsR.getCell(r,c).font={name:'Arial',size:11};wsR.getCell(r,c).border={top:{style:'thin',color:{argb:'FFCCCCCC'}},bottom:{style:'thin',color:{argb:'FFCCCCCC'}},left:{style:'thin',color:{argb:'FFCCCCCC'}},right:{style:'thin',color:{argb:'FFCCCCCC'}}};});
+    const dataRows=cnt; // number of data rows in team sheet (starts at row 3)
+    const lastDataRow=dataRows+2; // row 3 to row 3+cnt-1
+
+    const c1=wsR.getCell(r,1); c1.value=eq; c1.font={name:'Arial',size:11}; c1.border=brdN;
+    const c2=wsR.getCell(r,2);
+    // Count formula: number of non-empty Corretor cells in team sheet
+    c2.value={formula:`COUNTA('${sheetName}'!B3:B${lastDataRow})`,date1904:false};
+    c2.font={name:'Arial',size:11}; c2.alignment={horizontal:'center'}; c2.border=brdN;
+    const c3=wsR.getCell(r,3);
+    // Sum formula: linked to team sheet Valor Líquido column
+    c3.value={formula:`SUM('${sheetName}'!C3:C${lastDataRow})`,date1904:false};
+    c3.numFmt='R$ #,##0.00'; c3.font={name:'Arial',size:11};
+    c3.alignment={horizontal:'right'}; c3.border=brdN;
   });
+
+  // Total row with formula summing the 3 team totals
   wsR.mergeCells(6,1,6,2);
-  const rgt=wsR.getCell(6,1);totalCell(rgt);rgt.value='TOTAL GERAL';rgt.alignment={horizontal:'center',vertical:'middle'};
-  wsR.getCell(6,2).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+PD}};
-  wsR.getCell(6,2).border=rgt.border;
-  const rgtv=wsR.getCell(6,3);totalCell(rgtv);
-  rgtv.value=nfAll.reduce((a,r)=>a+(r.val||0),0);
-  rgtv.numFmt='R$ #,##0.00';rgtv.alignment={horizontal:'right',vertical:'middle'};
+  const rgt=wsR.getCell(6,1); totalCell(rgt); rgt.value='TOTAL GERAL'; rgt.alignment={horizontal:'center',vertical:'middle'};
+  wsR.getCell(6,2).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+PD}}; wsR.getCell(6,2).border=rgt.border;
+  const rgtv=wsR.getCell(6,3); totalCell(rgtv);
+  rgtv.value={formula:'C3+C4+C5',date1904:false};
+  rgtv.numFmt='R$ #,##0.00'; rgtv.alignment={horizontal:'right',vertical:'middle'};
 
   makeSheet('AFFINITY - SP',teams.sp);
   makeSheet('AFFINITY - RJ',teams.rio);
