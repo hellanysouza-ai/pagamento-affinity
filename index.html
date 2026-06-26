@@ -1554,8 +1554,8 @@ function exportRelatorioNF(){
 
   const PD='4A1A4A',PM='7B3A7B',LI='EEE5F5',GO='C9A84C',WH='FFFFFF';
   const BL='E6F1FB',GR='E1F5EE';
-  const COLS=['Documento','Corretor','Valor Líquido','Banco','Agência','Conta','Frequência','Banco ✓','NF ✓','Status'];
-  const WIDTHS=[22,45,15,8,12,18,12,8,8,14];
+  const COLS=['Documento','Corretor','Valor Líquido','Banco','Agência','Conta','Frequência','Banco ✓','NF ✓'];
+  const WIDTHS=[22,45,15,8,12,18,12,10,10];
 
   function hdrCell(cell,txt){
     cell.value=txt;
@@ -1588,7 +1588,7 @@ function exportRelatorioNF(){
     WIDTHS.forEach((w,i)=>ws.getColumn(i+1).width=w);
 
     // Title
-    ws.mergeCells(1,1,1,10);
+    ws.mergeCells(1,1,1,9);
     const t=ws.getCell(1,1);
     t.value=semana;
     t.font={name:'Arial',bold:true,size:14,color:{argb:'FF'+WH}};
@@ -1605,7 +1605,7 @@ function exportRelatorioNF(){
       const row=ri+3;
       const bg=ri%2===0?LI:WH;
       const vals=[decodeHTML(r.doc||''),decodeHTML(r.nome||''),r.val||0,
-        r.banco||'',r.ag||'',r.conta||'',r.freq||'','','','CONFIRMAR'];
+        r.banco||'',r.ag||'',r.conta||'',r.freq||'','',''];
       vals.forEach((v,ci)=>{
         const cell=ws.getCell(row,ci+1);
         dataCell(cell,bg);
@@ -1621,6 +1621,23 @@ function exportRelatorioNF(){
       });
     });
 
+    // Banco ✓ and NF ✓ — empty cells with dropdown ✓ or deixar vazio
+    rows.forEach((r,ri)=>{
+      const row=ri+3;
+      [8,9].forEach(ci=>{
+        const cell=ws.getCell(row,ci);
+        cell.value='';
+        cell.dataValidation={
+          type:'list',
+          allowBlank:true,
+          formulae:['"✓,✗"'],
+          showDropDown:false
+        };
+        cell.alignment={horizontal:'center',vertical:'middle'};
+        cell.font={name:'Arial',size:12,bold:true,color:{argb:'FF1D7A45'}};
+      });
+    });
+
     // Total
     const tr=rows.length+3;
     ws.mergeCells(tr,1,tr,2);
@@ -1628,8 +1645,8 @@ function exportRelatorioNF(){
     const tc3=ws.getCell(tr,3); totalCell(tc3);
     tc3.value=rows.reduce((a,r)=>a+(r.val||0),0);
     tc3.numFmt='R$ #,##0.00'; tc3.alignment={horizontal:'right',vertical:'middle'};
-    for(let c=4;c<=10;c++){totalCell(ws.getCell(tr,c));ws.getCell(tr,c).value='';}
-    ws.views=[{state:'frozen',xSplit:0,ySplit:2}];
+    for(let c=4;c<=9;c++){totalCell(ws.getCell(tr,c));ws.getCell(tr,c).value='';}
+    ws.views=[{state:'frozen',xSplit:0,ySplit:2,showGridLines:false}];
     return ws;
   }
 
@@ -1643,6 +1660,7 @@ function exportRelatorioNF(){
   rt.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+PD}};
   rt.alignment={horizontal:'center',vertical:'middle'};
   wsR.getRow(1).height=26;
+  wsR.views=[{showGridLines:false}];
   ['Equipe','Corretores','Total NF'].forEach((h,i)=>hdrCell(wsR.getCell(2,i+1),h));
 
   // Each team: name, sheet name, row count
