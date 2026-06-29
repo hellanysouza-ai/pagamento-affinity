@@ -450,16 +450,34 @@ tr.novo-row{background:#FFF5F5!important}
       <div class="rrows" id="r-nf"></div>
     </div>
   </div>
-  <div class="rblock" style="margin-bottom:20px">
-    <div class="rhead">Resumo Financeiro</div>
-    <div class="rrow"><span class="rl">Σ Valores Líquidos Inovah (SIS)</span><span class="rv" id="r-liq">R$ 0,00</span></div>
-    <div class="rrow" id="r-manual-row" style="display:none"><span class="rl">Lançamentos Manuais</span><span class="rv" id="r-manual-total">R$ 0,00</span></div>
-    <div class="rrow"><span class="rl" id="r-liq-total-lbl">Σ Total Líquido</span><span class="rv" id="r-liq-total">R$ 0,00</span></div>
-    <div class="rrow"><span class="rl">Tarifa Adm (1% s/ total líquido)</span><span class="rv" id="r-adm">R$ 0,00</span></div>
-    <div class="rrow"><span class="rl" id="r-taxa-lbl">Taxa Bancária (0 × R$2,00)</span><span class="rv" id="r-taxa">R$ 0,00</span></div>
-    <div class="rrow rtotal"><span class="rl">Valor Pedido Inovah</span><span class="rv" id="r-inovah-total">R$ 0,00</span></div>
-    <div class="rrow" style="margin-top:8px"><span class="rl">Total NF</span><span class="rv" id="r-nf-total">R$ 0,00</span></div>
-    <div class="rrow rtotal"><span class="rl">TOTAL GERAL</span><span class="rv" id="r-geral">R$ 0,00</span></div>
+  <div class="rblock" style="margin-bottom:20px;padding:0;overflow:hidden">
+    <!-- Header -->
+    <div style="background:var(--purple);padding:16px 24px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:2px">Affinity Corretora</div>
+      <div style="font-size:15px;font-weight:700;color:#fff;letter-spacing:.04em">RESUMO FINANCEIRO</div>
+    </div>
+    <!-- Inovah section -->
+    <div style="padding:16px 24px 0">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--purple);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--purple)">Inovah</div>
+      <div class="rrow"><span class="rl">Σ Valores Líquidos Inovah (SIS)</span><span class="rv" id="r-liq">R$ 0,00</span></div>
+      <div class="rrow" id="r-manual-row" style="display:none"><span class="rl">Lançamentos Manuais</span><span class="rv" id="r-manual-total">R$ 0,00</span></div>
+      <div class="rrow"><span class="rl" id="r-liq-total-lbl">Σ Total Líquido</span><span class="rv" id="r-liq-total">R$ 0,00</span></div>
+      <div class="rrow"><span class="rl">Tarifa Adm (1% s/ total líquido)</span><span class="rv" id="r-adm">R$ 0,00</span></div>
+      <div class="rrow"><span class="rl" id="r-taxa-lbl">Taxa Bancária (0 × R$2,00)</span><span class="rv" id="r-taxa">R$ 0,00</span></div>
+      <div class="rrow rtotal" style="margin-top:4px"><span class="rl">Valor Pedido Inovah</span><span class="rv" id="r-inovah-total">R$ 0,00</span></div>
+    </div>
+    <!-- NF section -->
+    <div style="padding:12px 24px 0">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--purple);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--purple)">NF — Notas Fiscais</div>
+      <div class="rrow"><span class="rl">Total NF</span><span class="rv" id="r-nf-total">R$ 0,00</span></div>
+    </div>
+    <!-- Total Geral -->
+    <div style="padding:12px 24px 20px">
+      <div class="rrow rtotal" style="background:var(--purple);margin:0 -0px;padding:12px 0;border-radius:10px">
+        <span class="rl" style="color:#fff;padding-left:14px;font-size:15px">TOTAL GERAL</span>
+        <span class="rv" id="r-geral" style="color:#fff;padding-right:14px;font-size:16px">R$ 0,00</span>
+      </div>
+    </div>
   </div>
   <div class="ebar">
     <button class="btn1" onclick="exportInovah()">↓ Exportar Inovah — Pagamento</button>
