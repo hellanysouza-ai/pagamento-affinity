@@ -121,6 +121,13 @@ td.empty{text-align:center;padding:44px;color:var(--muted);font-size:13px}
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--purple-dark);color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:100;font-family:var(--mono)}
 .toast.show{opacity:1}
+.split-box{background:#FAF7FC;border:1px solid #E0D0E8;border-radius:10px;padding:14px 16px;margin-top:10px}
+.split-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.split-row:last-child{margin-bottom:0}
+.split-row label{font-size:12px;font-weight:600;color:var(--purple);min-width:130px}
+.split-row input{flex:1;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;font-family:var(--mono);background:#fff}
+.split-row input:focus{outline:none;border-color:var(--purple)}
+.split-row .split-val{font-family:var(--mono);font-size:13px;font-weight:600;min-width:120px;text-align:right}
 .btn-act{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 5px;border-radius:4px;font-family:var(--font);line-height:1}
 .btn-act:hover{background:var(--border)}
 .btn-act.del:hover{background:var(--red-light)}
@@ -465,6 +472,43 @@ tr.novo-row{background:#FFF5F5!important}
       <div class="rrow"><span class="rl">Tarifa Adm (1% s/ total líquido)</span><span class="rv" id="r-adm">R$ 0,00</span></div>
       <div class="rrow"><span class="rl" id="r-taxa-lbl">Taxa Bancária (0 × R$2,00)</span><span class="rv" id="r-taxa">R$ 0,00</span></div>
       <div class="rrow rtotal" style="margin-top:4px"><span class="rl">Valor Pedido Inovah</span><span class="rv" id="r-inovah-total">R$ 0,00</span></div>
+      <div class="split-box" id="split-box">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+          <span>Dividir entre empresas pagadoras</span>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:500;text-transform:none;letter-spacing:0;cursor:pointer">
+            <input type="checkbox" id="split-enable" onchange="toggleSplit()" style="width:14px;height:14px">
+            Ativar divisão
+          </label>
+        </div>
+        <div id="split-fields" style="display:none">
+          <div class="split-row">
+            <label>Quali Planos (líquido)</label>
+            <input type="text" id="split-quali" placeholder="Ex: 400000.00" oninput="calcSplit()">
+            <span class="split-val" id="split-quali-fmt">R$ 0,00</span>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px">
+            <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 14px">
+              <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--purple);margin-bottom:8px">Quali Planos</div>
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px;color:var(--muted)"><span>Tarifa Adm (1%)</span><span id="split-quali-adm">R$ 0,00</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px;color:var(--muted)"><span id="split-quali-taxa-lbl">Taxa Bancária</span><span id="split-quali-taxa">R$ 0,00</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);color:var(--purple)"><span>Pedido Quali</span><span id="split-quali-pedido">R$ 0,00</span></div>
+            </div>
+            <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 14px">
+              <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--purple);margin-bottom:8px">Nova Affinity</div>
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px;color:var(--muted)"><span>Tarifa Adm (1%)</span><span id="split-affinity-adm">R$ 0,00</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px;color:var(--muted)"><span id="split-affinity-taxa-lbl">Taxa Bancária</span><span id="split-affinity-taxa">R$ 0,00</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);color:var(--purple)"><span>Pedido Affinity</span><span id="split-affinity-pedido">R$ 0,00</span></div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+            <button class="btn2" onclick="exportSplit('quali')" style="font-size:12px;padding:8px 14px;flex:1">↓ Pagamento — Quali Planos</button>
+            <button class="btn2" onclick="exportSplit('affinity')" style="font-size:12px;padding:8px 14px;flex:1">↓ Pagamento — Nova Affinity</button>
+          </div>
+          <div style="font-size:10.5px;color:var(--muted);margin-top:8px;text-align:center" id="split-count-info"></div>
+        </div>
+      </div>
     </div>
     <!-- NF section -->
     <div style="padding:12px 24px 0">
@@ -1473,6 +1517,86 @@ function saveEdit(){
   renderInovah();renderNF();renderResumo();
   showMsg('✓ Registro atualizado.');
 }
+let splitEnabled=false;
+function toggleSplit(){
+  splitEnabled=document.getElementById('split-enable').checked;
+  document.getElementById('split-fields').style.display=splitEnabled?'block':'none';
+  calcSplit();
+}
+function getSplitGroups(){
+  // Pega todos corretores Inovah (SIS + manuais) na ordem em que aparecem
+  const todos=[...allData.filter(r=>r.source==='inovah'),...manualDataI];
+  const qualiTarget=parseFloat((document.getElementById('split-quali').value||'0').replace(',','.'))||0;
+  const qualiGroup=[];
+  const affinityGroup=[];
+  let acc=0;
+  todos.forEach(r=>{
+    if(acc<qualiTarget){
+      qualiGroup.push(r);
+      acc+=r.val;
+    } else {
+      affinityGroup.push(r);
+    }
+  });
+  return{qualiGroup,affinityGroup,qualiSum:qualiGroup.reduce((a,r)=>a+r.val,0),affinitySum:affinityGroup.reduce((a,r)=>a+r.val,0)};
+}
+function calcGroupPedido(group){
+  const liq=group.reduce((a,r)=>a+r.val,0);
+  const vp=liq*1.01;
+  const taxa=group.length*2;
+  const pedido=vp+taxa;
+  return{n:group.length,liq,vp,taxa,pedido,adm:vp-liq};
+}
+function calcSplit(){
+  try{
+    if(!splitEnabled){console.log('calcSplit: splitEnabled is false');return;}
+    const{qualiGroup,affinityGroup}=getSplitGroups();
+    console.log('calcSplit: qualiGroup.length=',qualiGroup.length,'affinityGroup.length=',affinityGroup.length);
+    const q=calcGroupPedido(qualiGroup);
+    const a=calcGroupPedido(affinityGroup);
+    console.log('calcSplit: q=',q,'a=',a);
+    const elQF=document.getElementById('split-quali-fmt');
+    const elAF=document.getElementById('split-affinity-fmt');
+    const elQA=document.getElementById('split-quali-adm');
+    const elQT=document.getElementById('split-quali-taxa');
+    const elQP=document.getElementById('split-quali-pedido');
+    const elAA=document.getElementById('split-affinity-adm');
+    const elAT=document.getElementById('split-affinity-taxa');
+    const elAP=document.getElementById('split-affinity-pedido');
+    const elQTL=document.getElementById('split-quali-taxa-lbl');
+    const elATL=document.getElementById('split-affinity-taxa-lbl');
+    const elCI=document.getElementById('split-count-info');
+    console.log('calcSplit: elements found?',{elQF:!!elQF,elAF:!!elAF,elQA:!!elQA,elQT:!!elQT,elQP:!!elQP,elAA:!!elAA,elAT:!!elAT,elAP:!!elAP,elQTL:!!elQTL,elATL:!!elATL,elCI:!!elCI});
+    if(elQF)elQF.textContent='R$ '+fmtN(q.liq);
+    if(elAF)elAF.textContent='R$ '+fmtN(a.liq);
+    if(elQA)elQA.textContent='R$ '+fmtN(q.adm);
+    if(elQT)elQT.textContent='R$ '+fmtN(q.taxa);
+    if(elQP)elQP.textContent='R$ '+fmtN(q.pedido);
+    if(elAA)elAA.textContent='R$ '+fmtN(a.adm);
+    if(elAT)elAT.textContent='R$ '+fmtN(a.taxa);
+    if(elAP)elAP.textContent='R$ '+fmtN(a.pedido);
+    if(elQTL)elQTL.textContent='Taxa Bancária ('+q.n+' × R$2,00)';
+    if(elATL)elATL.textContent='Taxa Bancária ('+a.n+' × R$2,00)';
+    if(elCI)elCI.textContent=q.n+' corretores → Quali · '+a.n+' corretores → Nova Affinity';
+    console.log('calcSplit: DONE');
+  }catch(err){
+    console.error('calcSplit ERROR:',err);
+  }
+}
+function exportSplit(which){
+  const{qualiGroup,affinityGroup}=getSplitGroups();
+  const rows=which==='quali'?qualiGroup:affinityGroup;
+  if(!rows.length){alert('Nenhum corretor neste grupo.');return;}
+  const w=document.getElementById('week-input').value||'semana';
+  const nomeArq=which==='quali'?'Quali_Planos':'Nova_Affinity';
+  const h='Documento;Nome;Valor;Banco;Agencia com digito;Conta com digito;Conta Poupanca;Chave Pix;Observacao\n';
+  const body=rows.map(r=>{
+    const poup=isPoupanca(r)?'SIM':'';
+    return[cleanDoc(r.doc),decodeHTML(r.nome),r.val.toFixed(2),r.banco,r.ag,r.conta,poup,r.pix||'',r.obs||''].join(';');
+  }).join('\n');
+  dl('\uFEFF'+h+body,nomeArq+'_Pagamento_'+w.replace(/\//g,'-')+'.csv');
+  showMsg('✓ Pagamento '+(which==='quali'?'Quali':'Nova Affinity')+' exportado: '+rows.length+' corretores.');
+}
 function renderResumo(){
   const iv=calcInovah(allData);
   const nf=allData.filter(r=>r.source==='nf');
@@ -1492,6 +1616,7 @@ function renderResumo(){
   document.getElementById('r-liq-total').style.display=iv.liqMan>0?'flex':'none';
   document.getElementById('r-liq-total').textContent=fmt(iv.liq);
   document.getElementById('r-inovah-total').textContent=fmt(iv.pedido);
+  if(splitEnabled)calcSplit();
   const snMan=manualDataN.reduce((a,r)=>a+r.val,0);
   const snTotal=sn+snMan;
   document.getElementById('r-nf-total').textContent=fmt(snTotal);
