@@ -421,6 +421,10 @@ tr.novo-row{background:#FFF5F5!important}
   <div id="sub-nf" class="twrap" style="display:none">
     <div class="tbar">
       <span class="tbar-title">Corretores NF</span>
+      <span class="chip err" id="chip-err-nf" onclick="toggleErrNF()">⚠ Com erro</span>
+      <span class="chip" id="chip-novo-nf" onclick="toggleNovoNF()" style="border-color:#F7C1C1;color:var(--red)">🔴 Novos (&lt;90d)</span>
+      <span class="chip" id="chip-poupa-nf" onclick="togglePoupaNF()" style="border-color:#E8D49A;color:#7A5010">Poupança</span>
+      <span class="chip" id="chip-dup-nf" onclick="toggleDupNF()" style="border-color:#F7C1C1;color:#A32D2D">⚠ Duplicados</span>
       <button class="btn2" onclick="exportCSVNF()" style="font-size:12px;padding:6px 14px">↓ CSV</button>
       <input type="text" id="search-nf" placeholder="Buscar..." oninput="renderNF()">
     </div>
@@ -1067,6 +1071,23 @@ function temErro(r){
   const isNovo=dias!==null&&dias>=0&&dias<=90;
   return ag.length!==4||!temDig||isNovo;
 }
+function analiseNF(r){
+  const ag=(r.ag||'').replace(/\D/g,'');
+  const partes=(r.conta||'').split('-');
+  const temDig=partes.length>1&&partes[partes.length-1].trim().length===1;
+  const erros=[];
+  if(r.banco&&ag.length!==4)erros.push('Agência: '+ag.length+'d');
+  if(r.conta&&!temDig)erros.push('Conta sem dígito');
+  const incl=getInclusao(r.doc,r.nome,r.codCorr);
+  const dias=diasDesde(incl);
+  if(dias!==null&&dias>=0&&dias<=90)erros.push('Novo: '+dias+'d');
+  // Duplicado
+  const allNF=allData.filter(x=>x.source==='nf');
+  const nc={};allNF.forEach(x=>{const k=x.nome.toUpperCase().trim();nc[k]=(nc[k]||0)+1;});
+  if((nc[r.nome.toUpperCase().trim()]||0)>1)erros.push('Duplicado');
+  if(!erros.length)return'<span class="badge b-ok">✓ Ok</span>';
+  return`<span class="badge b-err" title="${erros.join(' | ')}">⚠ ${erros.length} erro${erros.length>1?'s':''}</span>`;
+}
 function analise(r){
   if(r.source!=='inovah')return'<span style="font-size:11px;color:var(--muted)">N/A</span>';
   const ag=(r.ag||'').replace(/\D/g,'');
@@ -1142,6 +1163,7 @@ function nextP(){if((page+1)*PER<getFiltered().length){page++;renderT()}}
 
 // ── SUB-TABS ─────────────────────────────────────────────────────────────────
 let subTab='inovah', pageI=0, pageN=0, errIv=false, novoIv=false, poupaIv=false, dupIv=false;
+let errNF=false, novoNF=false, poupaNF=false, dupNF=false;
 let currentEquipe='all';
 
 function togglePoupaIv(){
@@ -1160,7 +1182,9 @@ function setEquipe(eq){
   pageI=0;pageN=0;
   // Reset sub-filters when switching equipe
   errIv=false;novoIv=false;poupaIv=false;dupIv=false;
-  ['chip-err-iv','chip-novo-iv','chip-poupa-iv','chip-dup-iv'].forEach(id=>{
+  errNF=false;novoNF=false;poupaNF=false;dupNF=false;
+  ['chip-err-iv','chip-novo-iv','chip-poupa-iv','chip-dup-iv',
+   'chip-err-nf','chip-novo-nf','chip-poupa-nf','chip-dup-nf'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.classList.remove('on');
   });
   renderInovah();renderNF();renderResumo();
@@ -1179,6 +1203,26 @@ function exportEquipe(){
     return[cleanDoc(r.doc),r.nome,r.val.toFixed(2),r.banco,r.ag,r.conta,poup,r.pix||'',r.obs||''].join(';');
   }).join('\n');
   dl('\uFEFF'+h+body,nomeEq+'_Inovah_'+w.replace(/\//g,'-')+'.csv');
+}
+function toggleErrNF(){
+  errNF=!errNF;
+  document.getElementById('chip-err-nf').classList.toggle('on',errNF);
+  pageN=0;renderNF();
+}
+function toggleNovoNF(){
+  novoNF=!novoNF;
+  document.getElementById('chip-novo-nf').classList.toggle('on',novoNF);
+  pageN=0;renderNF();
+}
+function togglePoupaNF(){
+  poupaNF=!poupaNF;
+  document.getElementById('chip-poupa-nf').classList.toggle('on',poupaNF);
+  pageN=0;renderNF();
+}
+function toggleDupNF(){
+  dupNF=!dupNF;
+  document.getElementById('chip-dup-nf').classList.toggle('on',dupNF);
+  pageN=0;renderNF();
 }
 function toggleDupIv(){
   dupIv=!dupIv;
@@ -1285,9 +1329,28 @@ function nextPI(){if((pageI+1)*PER<getInovah().length){pageI++;renderInovah()}}
 // ── NF TABLE ──────────────────────────────────────────────────────────────────
 function getNF(){
   const q=(document.getElementById('search-nf').value||'').toLowerCase();
-  return allData.filter(r=>{
-    if(r.source!=='nf')return false;
+  const allNF=allData.filter(r=>r.source==='nf');
+  return allNF.filter(r=>{
     if(currentEquipe!=='all'&&r.equipe!==currentEquipe)return false;
+    // Com erro: agência ou conta inválida
+    if(errNF){
+      const ag=(r.ag||'').replace(/\D/g,'');
+      const partes=(r.conta||'').split('-');
+      const temDig=partes.length>1&&partes[partes.length-1].trim().length===1;
+      if(ag.length===4&&temDig)return false;
+    }
+    // Novos <90d
+    if(novoNF){
+      const dias=diasDesde(getInclusao(r.doc,r.nome,r.codCorr));
+      if(!(dias!==null&&dias>=0&&dias<=90))return false;
+    }
+    // Poupança
+    if(poupaNF&&!isPoupanca(r))return false;
+    // Duplicados
+    if(dupNF){
+      const nc={};allNF.forEach(x=>{const k=x.nome.toUpperCase().trim();nc[k]=(nc[k]||0)+1;});
+      if((nc[r.nome.toUpperCase().trim()]||0)<=1)return false;
+    }
     if(q&&!r.nome.toLowerCase().includes(q)&&!r.doc.includes(q))return false;
     return true;
   });
@@ -1299,7 +1362,7 @@ function renderNF(){
   if(!tb)return;
   const fb=r=>r.freq?'<span class="badge '+(r.freq==='SEMANAL'?'b-sem':'b-men')+'">'+(r.freq.charAt(0)+r.freq.slice(1).toLowerCase())+'</span>':'<span style="font-size:11px;color:var(--muted)">—</span>';
   if(!rows.length){
-    tb.innerHTML='<tr><td colspan="10" class="empty">Nenhum registro NF.</td></tr>';
+    tb.innerHTML='<tr><td colspan="12" class="empty">Nenhum registro NF.</td></tr>';
   }else{
     tb.innerHTML=pr.map((r,i)=>`<tr>
       <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${pageN*PER+i+1}</td>
