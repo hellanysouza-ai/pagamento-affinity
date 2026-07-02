@@ -1587,14 +1587,22 @@ function toggleSplit(){
   calcSplit();
 }
 function getSplitGroups(){
-  // Pega todos corretores Inovah (SIS + manuais) na ordem em que aparecem
   const todos=[...allData.filter(r=>r.source==='inovah'),...manualDataI];
   const qualiTarget=parseFloat((document.getElementById('split-quali').value||'0').replace(',','.'))||0;
   const qualiGroup=[];
   const affinityGroup=[];
   let acc=0;
   todos.forEach(r=>{
-    if(acc<qualiTarget){
+    // Inclui se ainda não ultrapassou E adicionar este não ultrapassa (mais próximo sem exceder)
+    // OU se a diferença incluindo for menor que a diferença sem incluir
+    const difSem=Math.abs(qualiTarget-acc);
+    const difCom=Math.abs(qualiTarget-(acc+r.val));
+    if(acc+r.val<=qualiTarget){
+      // Ainda dentro do limite — inclui sempre
+      qualiGroup.push(r);
+      acc+=r.val;
+    } else if(difCom<difSem&&qualiGroup.length===0){
+      // Caso especial: primeiro corretor já ultrapassa mas é o mais próximo
       qualiGroup.push(r);
       acc+=r.val;
     } else {
