@@ -167,6 +167,7 @@ tr.novo-row{background:#FFF5F5!important}
 .stab.on{background:var(--purple)!important;color:#fff!important}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <header>
@@ -357,6 +358,16 @@ tr.novo-row{background:#FFF5F5!important}
         <div style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">⭐ Favoritos</div>
         <div id="favs-inovah"></div>
       </div>
+      <!-- Upload Premiação -->
+      <div style="margin-bottom:14px;padding:12px 14px;background:#FAF7FC;border:1px dashed var(--purple);border-radius:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--purple);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">📋 Importar Planilha de Premiação</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="file" id="prem-inp" accept=".xlsx,.xls" onchange="importarPremiacao(this.files[0])" style="display:none">
+          <button class="btn2" onclick="document.getElementById('prem-inp').click()" style="font-size:12px;padding:7px 14px">📂 Selecionar arquivo .xlsx</button>
+          <span id="prem-status" style="font-size:12px;color:var(--muted)">Lê a aba mais recente automaticamente</span>
+        </div>
+      </div>
+
       <div style="display:flex;gap:10px">
         <button class="btn1" onclick="addManualI()" style="font-size:13px;padding:9px 20px">+ Adicionar</button>
         <button class="btn2" onclick="exportManualInovah()" id="btn-export-manual-i" style="font-size:12px;padding:9px 16px;display:none">↓ Exportar Manuais — Pagamento</button>
@@ -1391,6 +1402,79 @@ function nextPN(){if((pageN+1)*PER<getNF().length){pageN++;renderNF()}}
 let manualDataI=[]; // Inovah manuais
 let manualDataN=[]; // NF manuais
 
+const BANCO_MAP={
+  'NUBANK':'260','INTER':'077','C6':'336','BRADESCO':'237',
+  'ITAÚ':'341','ITAU':'341','SANTANDER':'033','MERCADO PAGO':'323',
+  'PICPAY':'380','BB':'001','BANCO DO BRASIL':'001','CAIXA':'104',
+  'CEF':'104','BTG':'208','SICOOB':'756','SICREDI':'748',
+  'ORIGINAL':'212','NEON':'735','NEXT':'237','SOFISA':'637',
+  'PAGSEGURO':'290','STONE':'197','WILL':'473','XP':'102'
+};
+function normalizarBanco(nome){
+  if(!nome)return'';
+  const n=(nome+'').trim().toUpperCase();
+  // Already a number
+  if(/^\d+$/.test(n))return n.padStart(3,'0');
+  return BANCO_MAP[n]||n;
+}
+function importarPremiacao(file){
+  if(!file)return;
+  if(!window.XLSX){
+    document.getElementById('prem-status').textContent='⚠ Biblioteca não carregada, aguarde...';
+    return;
+  }
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      // Pega a primeira aba (mais recente)
+      const sheetName=wb.SheetNames[0];
+      const ws=wb.Sheets[sheetName];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rows.length){
+        document.getElementById('prem-status').textContent='⚠ Nenhum dado encontrado.';
+        return;
+      }
+      let added=0, skipped=0;
+      rows.forEach(r=>{
+        // Map columns flexibly
+        const doc=String(r['Documento']||r['documento']||'').trim();
+        const nome=String(r['Nome']||r['nome']||'').trim();
+        const val=parseFloat(String(r['Valor']||r['valor']||'0').replace(',','.'));
+        const bancoRaw=String(r['Banco']||r['banco']||'').trim();
+        const banco=normalizarBanco(bancoRaw);
+        const ag=String(r['Agencia']||r['Agência']||r['agencia']||r['Agencia com digito']||'').trim();
+        const conta=String(r['Conta com digito']||r['Conta']||r['conta']||'').trim();
+        const tipoConta=String(r['CC ou CP']||r['Conta Poupanca']||'').trim().toUpperCase();
+        const pix=String(r['Chave Pix']||r['chave_pix']||'').trim();
+        const obs=String(r['Observacao']||r['Observação']||'').trim();
+        if(!nome||!val||val<=0){skipped++;return;}
+        const isPoup=tipoConta.includes('CP')||tipoConta.includes('POUP')||tipoConta.includes('SAL');
+        const temPix=!!(pix&&pix.trim());
+        manualDataI.push({
+          doc:doc.replace(/[\.\-\/\s]/g,''),
+          nome,val,
+          banco:temPix?'':normalizarBanco(banco),
+          ag:temPix?'':ag,
+          conta:temPix?'':conta,
+          poup:isPoup?'SIM':'',
+          pix:temPix?pix.trim():'',
+          obs,
+          tipo:temPix?'pix':'banco'
+        });
+        added++;
+      });
+      salvarFavorito=()=>{}; // skip auto-save for bulk import
+      renderManualI();renderResumo();
+      document.getElementById('prem-status').textContent=`✓ Aba "${sheetName}" — ${added} lançamentos importados${skipped?' ('+skipped+' ignorados)':''}`;
+      showMsg('✓ Premiação importada: '+added+' lançamentos.');
+    }catch(err){
+      document.getElementById('prem-status').textContent='⚠ Erro: '+err.message;
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
 function toggleTipoI(){
   const isPix=document.getElementById('m-tipo-i').value==='pix';
   document.getElementById('m-banco-fields-i').style.display=isPix?'none':'block';
