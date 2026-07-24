@@ -474,9 +474,18 @@ tr.novo-row{background:#FFF5F5!important}
   </div>
   <div class="rblock" style="margin-bottom:20px;padding:0;overflow:hidden">
     <!-- Header -->
-    <div style="background:var(--purple);padding:16px 24px">
-      <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:2px">Affinity Corretora</div>
-      <div style="font-size:15px;font-weight:700;color:#fff;letter-spacing:.04em">RESUMO FINANCEIRO</div>
+    <div style="background:var(--purple);padding:16px 24px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:2px">Affinity Corretora</div>
+        <div style="font-size:15px;font-weight:700;color:#fff;letter-spacing:.04em">RESUMO FINANCEIRO</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:rgba(255,255,255,.7);font-weight:600">Empresa pagadora:</span>
+        <div style="display:flex;background:rgba(255,255,255,.15);border-radius:20px;padding:3px">
+          <button id="btn-inovah" onclick="setEmpresa('inovah')" style="border:none;padding:5px 14px;border-radius:16px;font-size:12px;font-weight:700;cursor:pointer;background:var(--gold);color:#2D1228;transition:all .2s">Inovah</button>
+          <button id="btn-supera" onclick="setEmpresa('supera')" style="border:none;padding:5px 14px;border-radius:16px;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:rgba(255,255,255,.8);transition:all .2s">Supera</button>
+        </div>
+      </div>
     </div>
     <!-- Inovah section -->
     <div style="padding:16px 24px 0">
@@ -486,7 +495,7 @@ tr.novo-row{background:#FFF5F5!important}
       <div class="rrow"><span class="rl" id="r-liq-total-lbl">Σ Total Líquido</span><span class="rv" id="r-liq-total">R$ 0,00</span></div>
       <div class="rrow"><span class="rl">Tarifa Adm (1% s/ total líquido)</span><span class="rv" id="r-adm">R$ 0,00</span></div>
       <div class="rrow"><span class="rl" id="r-taxa-lbl">Taxa Bancária (0 × R$2,00)</span><span class="rv" id="r-taxa">R$ 0,00</span></div>
-      <div class="rrow rtotal" style="margin-top:4px"><span class="rl">Valor Pedido Inovah</span><span class="rv" id="r-inovah-total">R$ 0,00</span></div>
+      <div class="rrow rtotal" style="margin-top:4px"><span class="rl" id="lbl-valor-pedido">Valor Pedido Inovah</span><span class="rv" id="r-inovah-total">R$ 0,00</span></div>
       <div class="split-box" id="split-box">
         <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
           <span>Dividir entre empresas pagadoras</span>
@@ -539,7 +548,7 @@ tr.novo-row{background:#FFF5F5!important}
     </div>
   </div>
   <div class="ebar">
-    <button class="btn1" onclick="exportInovah()">↓ Exportar Inovah — Pagamento</button>
+    <button class="btn1" id="btn-exportar-pagamento" onclick="exportInovah()">↓ Exportar Inovah — Pagamento</button>
     <button class="btn2" onclick="exportRelatorioNF()" style="background:#1D9E75;color:#fff;border-color:#1D9E75">↓ Relatório NF (.xlsx)</button>
     <button class="btn2" onclick="exportCSV()">↓ Exportar CSV Completo</button>
     <button class="btn2" onclick="exportResumoHTML()">🖨 Exportar Resumo</button>
@@ -1665,6 +1674,24 @@ function saveEdit(){
   showMsg('✓ Registro atualizado.');
 }
 let splitEnabled=false;
+let empresaPagadora='inovah';
+function setEmpresa(emp){
+  empresaPagadora=emp;
+  const bi=document.getElementById('btn-inovah');
+  const bs=document.getElementById('btn-supera');
+  if(bi&&bs){
+    bi.style.background=emp==='inovah'?'var(--gold)':'transparent';
+    bi.style.color=emp==='inovah'?'#2D1228':'rgba(255,255,255,.8)';
+    bs.style.background=emp==='supera'?'var(--gold)':'transparent';
+    bs.style.color=emp==='supera'?'#2D1228':'rgba(255,255,255,.8)';
+  }
+  // Update labels
+  const lblVP=document.getElementById('lbl-valor-pedido');
+  if(lblVP)lblVP.textContent='Valor Pedido '+(emp==='inovah'?'Inovah':'Supera');
+  const btnExp=document.getElementById('btn-exportar-pagamento');
+  if(btnExp)btnExp.textContent='↓ Exportar '+(emp==='inovah'?'Inovah':'Supera')+' — Pagamento';
+  showMsg('✓ Empresa pagadora: '+(emp==='inovah'?'Inovah':'Supera'));
+}
 function toggleSplit(){
   splitEnabled=document.getElementById('split-enable').checked;
   document.getElementById('split-fields').style.display=splitEnabled?'block':'none';
@@ -1749,7 +1776,8 @@ function exportSplit(which){
     const poup=isPoupanca(r)?'SIM':'';
     return[cleanDoc(r.doc),decodeHTML(r.nome),r.val.toFixed(2),r.banco,r.ag,r.conta,poup,r.pix||'',r.obs||''].join(';');
   }).join('\n');
-  dl('\uFEFF'+h+body,nomeArq+'_Pagamento_'+w.replace(/\//g,'-')+'.csv');
+  const nomeEmpSplit=empresaPagadora==='supera'?'Supera':'Inovah';
+  dl('\uFEFF'+h+body,nomeArq+'_'+nomeEmpSplit+'_'+w.replace(/\//g,'-')+'.csv');
   showMsg('✓ Pagamento '+(which==='quali'?'Quali':'Nova Affinity')+' exportado: '+rows.length+' corretores.');
 }
 function renderResumo(){
@@ -1806,7 +1834,8 @@ function exportInovah(){
     const obs=r.obs||'';
     return[cleanDoc(r.doc),decodeHTML(r.nome),val,r.banco,r.ag,r.conta,poup,pix,obs].join(';');
   }).join('\n');
-  dl('\uFEFF'+h+rows,'Inovah_Pagamento_'+w.replace(/\//g,'-')+'.csv');
+  const nomeEmp=empresaPagadora==='supera'?'Supera':'Inovah';
+  dl('\uFEFF'+h+rows,nomeEmp+'_Pagamento_'+w.replace(/\//g,'-')+'.csv');
 }
 
 function exportCSVInovah(){
