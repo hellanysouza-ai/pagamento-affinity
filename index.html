@@ -2113,6 +2113,91 @@ function exportResumoHTML(){
   .manual-section-export{margin-top:16px;padding-top:12px;border-top:1px dashed #DDD5E8}
   .manual-section-export .ms-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7A6A92;margin-bottom:8px}
   @media print{body{padding:16px}.header{margin-bottom:20px}}
+
+  @media(max-width:768px){
+    /* Header */
+    header{padding:8px 14px;flex-wrap:wrap;gap:6px}
+    .hbrand img{height:32px}
+    .hbrand p{display:none}
+    .htabs{padding:0 10px;margin-left:0;overflow-x:auto;flex-shrink:1}
+    .tab{padding:12px 12px 10px;font-size:12px;white-space:nowrap}
+    .hright{flex-shrink:0}
+    .wbadge{font-size:10px;padding:4px 8px}
+
+    /* Main layout */
+    main{padding:12px}
+
+    /* Cards */
+    .cards{grid-template-columns:1fr 1fr;gap:8px}
+    .card{padding:12px 14px}
+    .card-val{font-size:16px}
+
+    /* Import boxes */
+    .ibox{margin-bottom:12px}
+    .ihead{flex-wrap:wrap;gap:6px;padding:10px 14px}
+    .ibody{padding:12px 14px}
+    .uzone{padding:16px 12px}
+    .uzone-title{font-size:12px}
+    .uzone-sub{font-size:10px}
+
+    /* Tables — scroll horizontal */
+    .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r)}
+    table{min-width:600px;font-size:11px}
+    thead th{padding:7px 8px;font-size:9px}
+    tbody td{padding:7px 8px}
+
+    /* Toolbar */
+    .tbar{flex-wrap:wrap;gap:6px;padding:10px 12px}
+    .tbar-title{font-size:12px}
+    .chip{font-size:10px;padding:3px 8px}
+    .btn2{font-size:11px;padding:5px 10px}
+    .btn1{font-size:13px;padding:10px 18px}
+
+    /* Search */
+    #search-inovah,#search-nf{width:120px;font-size:12px}
+
+    /* Resumo */
+    .rblock{padding:0}
+    .rrow{padding:8px 14px;font-size:13px}
+    .rv{font-size:12px}
+
+    /* Manual entries */
+    .manual-grid,.manual-grid.wide{grid-template-columns:1fr 1fr!important}
+    .mfield label{font-size:9px}
+    .mfield input,.mfield select{font-size:12px;padding:6px 8px}
+    .manual-item{flex-wrap:wrap;gap:4px}
+
+    /* Split box */
+    .split-box{padding:10px 12px}
+    #split-fields>div[style*="grid"]{grid-template-columns:1fr!important}
+
+    /* Equipe chips */
+    #panel-conf>div:first-child{flex-wrap:wrap;gap:6px;padding:8px 0}
+
+    /* Resumo header split */
+    .rblock [style*="justify-content:space-between"]{flex-direction:column;gap:10px}
+    .rblock [style*="display:grid"]{grid-template-columns:1fr!important}
+
+    /* Pagination */
+    .pinfo{font-size:11px}
+    .pinfo button{font-size:11px;padding:4px 10px}
+
+    /* Modal */
+    .modal{width:95vw;padding:20px 16px}
+    .modal-grid{grid-template-columns:1fr!important}
+
+    /* Favorites */
+    #favs-inovah,#favs-nf{max-height:120px;overflow-y:auto}
+  }
+
+  @media(max-width:480px){
+    .cards{grid-template-columns:1fr}
+    .manual-grid,.manual-grid.wide{grid-template-columns:1fr!important}
+    #search-inovah,#search-nf{width:90px}
+    .tbar{gap:4px}
+    .chip{font-size:9px;padding:2px 6px}
+    table{min-width:500px;font-size:10px}
+  }
 </style>
 </head>
 <body>
