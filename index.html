@@ -670,16 +670,17 @@ async function carregarBaseSIS(){
 }
 function isNF(n,cod){
   const c=(cod||'').trim();
+  const nu=(n||'').toUpperCase().trim();
   const mapLoaded=Object.keys(emittersMap).length>0;
   if(mapLoaded){
-    // CSV carregado: busca SOMENTE pelo código
-    if(c)return !!(emittersMap[c]);
-    // Sem código: fallback pelo nome
-    return !!(emittersMap[(n||'').toUpperCase().trim()]);
+    // Verifica pelo código primeiro, depois pelo nome como fallback
+    // Isso garante que duplicatas com códigos diferentes mas mesmo nome
+    // sejam classificadas corretamente
+    if(c&&emittersMap[c])return true;
+    return !!(emittersMap[nu]);
   } else {
-    // Sem CSV: usa EMITTERS_BASE como fallback
     if(c&&EMITTERS_BASE.has(c))return true;
-    return EMITTERS_BASE.has((n||'').toUpperCase().trim());
+    return EMITTERS_BASE.has(nu);
   }
 }
 function setWeek(v){document.getElementById('wbadge').textContent='Semana — '+(v||'')}
