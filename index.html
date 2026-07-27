@@ -1082,8 +1082,13 @@ function showMsg(msg,err){
 }
 
 // ── VALIDAÇÃO ───────────────────────────────────────────────────────────────
+function bancoInvalido(r){
+  const b=(r.banco||'').toString().trim();
+  return b==='-1'||b==='-';
+}
 function temErro(r){
   if(r.source!=='inovah')return false;
+  if((r.banco||'').toString().trim()==='-1')return true;
   const ag=(r.ag||'').replace(/\D/g,'');
   const partes=(r.conta||'').split('-');
   const temDig=partes.length>1&&partes[partes.length-1].trim().length===1;
@@ -1096,6 +1101,8 @@ function analiseNF(r){
   const partes=(r.conta||'').split('-');
   const temDig=partes.length>1&&partes[partes.length-1].trim().length===1;
   const erros=[];
+  if((r.banco||'').toString().trim()==='-1')erros.push('Banco inválido (-1)');
+  if(bancoInvalido(r))erros.push('Banco inválido ('+r.banco+')');
   if(r.banco&&ag.length!==4)erros.push('Agência: '+ag.length+'d');
   if(r.conta&&!temDig)erros.push('Conta sem dígito');
   const incl=getInclusao(r.doc,r.nome,r.codCorr);
@@ -1114,6 +1121,7 @@ function analise(r){
   const partes=(r.conta||'').split('-');
   const temDig=partes.length>1&&partes[partes.length-1].trim().length===1;
   const erros=[];
+  if((r.banco||'').toString().trim()==='-1')erros.push('Banco inválido (-1)');
   if(ag.length!==4)erros.push('Agência: '+ag.length+' dígito'+(ag.length!==1?'s':''));
   if(!temDig)erros.push('Conta sem dígito');
   const dias=diasDesde(getInclusao(r.doc,r.nome,r.codCorr));
@@ -1357,7 +1365,7 @@ function getNF(){
       const ag=(r.ag||'').replace(/\D/g,'');
       const partes=(r.conta||'').split('-');
       const temDig=partes.length>1&&partes[partes.length-1].trim().length===1;
-      if(ag.length===4&&temDig)return false;
+      if(!bancoInvalido(r)&&ag.length===4&&temDig)return false;
     }
     // Novos <90d
     if(novoNF){
