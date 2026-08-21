@@ -1453,30 +1453,66 @@ function importarPremiacao(file){
         document.getElementById('prem-status').textContent='⚠ Nenhum dado encontrado.';
         return;
       }
+      // Detecta o modelo pelas colunas do cabeçalho da planilha
+      const headers=Object.keys(rows[0]).map(h=>h.trim().toLowerCase());
+      const modelo = headers.some(h=>h==='tipo pix') ? 'cpf_pix' : 'padrao';
+
+      // Helper: busca valor de uma coluna tolerando espaços/maiúsculas nos cabeçalhos
+      const get=(row,...keys)=>{
+        for(const k of keys){
+          for(const rk in row){
+            if(rk.trim().toLowerCase()===k.toLowerCase()) return String(row[rk]).trim();
+          }
+        }
+        return '';
+      };
+
       let added=0, skipped=0;
       rows.forEach(r=>{
-        // Map columns flexibly
-        const doc=String(r['Documento']||r['documento']||'').trim();
-        const nome=String(r['Nome']||r['nome']||'').trim();
-        const val=parseFloat(String(r['Valor']||r['valor']||'0').replace(',','.'));
-        const bancoRaw=String(r['Banco']||r['banco']||'').trim();
-        const banco=normalizarBanco(bancoRaw);
-        const ag=String(r['Agencia']||r['Agência']||r['agencia']||r['Agencia com digito']||'').trim();
-        const conta=String(r['Conta com digito']||r['Conta']||r['conta']||'').trim();
-        const tipoConta=String(r['CC ou CP']||r['Conta Poupanca']||'').trim().toUpperCase();
-        const pix=String(r['Chave Pix']||r['chave_pix']||'').trim();
-        const obs=String(r['Observacao']||r['Observação']||'').trim();
+        let doc, nome, val, banco='', ag='', conta='', poup='', pix='', obs='', temPix;
+
+        if(modelo==='cpf_pix'){
+          // Modelo 2: CPF | Nome Completo | Valor | Pix | Tipo Pix
+          doc=get(r,'CPF').replace(/[\.\-\/\s]/g,'');
+          if(doc && doc.length===10) doc='0'+doc; // corrige CPF que perdeu o zero à esquerda ao virar número no Excel
+          nome=get(r,'Nome Completo','Nome');
+          val=parseFloat(get(r,'Valor').replace(',','.'))||0;
+          const tipoPix=get(r,'Tipo Pix').toUpperCase();
+          let pixRaw=get(r,'Pix');
+          if(tipoPix.includes('CPF')||tipoPix.includes('CNPJ')){
+            pix=pixRaw.replace(/[\.\-\/\s]/g,'');
+            if(tipoPix.includes('CPF')&&pix.length===10) pix='0'+pix;
+          }else if(tipoPix.includes('CELULAR')||tipoPix.includes('TELEFONE')){
+            pix=pixRaw.replace(/[^\d]/g,'');
+          }else{
+            pix=pixRaw.trim(); // e-mail ou chave aleatória
+          }
+          temPix=true; // esse modelo é sempre pago via Pix
+        }else{
+          // Modelo padrão: Documento | Nome | Valor | Banco/Pix
+          doc=get(r,'Documento');
+          nome=get(r,'Nome');
+          val=parseFloat(get(r,'Valor').replace(',','.'))||0;
+          const bancoRaw=get(r,'Banco');
+          banco=normalizarBanco(bancoRaw);
+          ag=get(r,'Agencia','Agência','Agencia com digito');
+          conta=get(r,'Conta com digito','Conta');
+          const tipoConta=get(r,'CC ou CP','Conta Poupanca').toUpperCase();
+          pix=get(r,'Chave Pix','chave_pix');
+          obs=get(r,'Observacao','Observação');
+          poup=(tipoConta.includes('CP')||tipoConta.includes('POUP')||tipoConta.includes('SAL'))?'SIM':'';
+          temPix=!!(pix&&pix.trim());
+        }
+
         if(!nome||!val||val<=0){skipped++;return;}
-        const isPoup=tipoConta.includes('CP')||tipoConta.includes('POUP')||tipoConta.includes('SAL');
-        const temPix=!!(pix&&pix.trim());
         manualDataI.push({
-          doc:doc.replace(/[\.\-\/\s]/g,''),
+          doc:(doc||'').replace(/[\.\-\/\s]/g,''),
           nome,val,
           banco:temPix?'':normalizarBanco(banco),
           ag:temPix?'':ag,
           conta:temPix?'':conta,
-          poup:isPoup?'SIM':'',
-          pix:temPix?pix.trim():'',
+          poup:temPix?'':poup,
+          pix:temPix?(pix||'').trim():'',
           obs,
           tipo:temPix?'pix':'banco'
         });
@@ -1484,7 +1520,8 @@ function importarPremiacao(file){
       });
       salvarFavorito=()=>{}; // skip auto-save for bulk import
       renderManualI();renderResumo();
-      document.getElementById('prem-status').textContent=`✓ Aba "${sheetName}" — ${added} lançamentos importados${skipped?' ('+skipped+' ignorados)':''}`;
+      const modeloLabel = modelo==='cpf_pix' ? 'CPF/Pix' : 'padrão';
+      document.getElementById('prem-status').textContent=`✓ Aba "${sheetName}" (modelo ${modeloLabel}) — ${added} lançamentos importados${skipped?' ('+skipped+' ignorados)':''}`;
       showMsg('✓ Premiação importada: '+added+' lançamentos.');
     }catch(err){
       document.getElementById('prem-status').textContent='⚠ Erro: '+err.message;
