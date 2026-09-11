@@ -563,6 +563,7 @@ tr.novo-row{background:#FFF5F5!important}
   <div class="modal">
     <div class="modal-title">✏️ Editar Registro</div>
     <input type="hidden" id="edit-idx">
+    <input type="hidden" id="edit-source" value="allData">
     <div class="modal-grid">
       <div class="mfield"><label>Documento (CPF/CNPJ)</label><input type="text" id="edit-doc" placeholder="Ex: 12345678901"></div>
       <div class="mfield"><label>Nome / Razão Social</label><input type="text" id="edit-nome" placeholder="Nome completo"></div>
@@ -1666,6 +1667,7 @@ function renderManualI(){
       <span style="font-size:11px;color:var(--muted)">${r.banco} / ${r.ag} / ${r.conta}</span>
       ${r.poup?'<span class="badge" style="background:var(--gold-light);color:#7A5010;font-size:10px">Poupança</span>':''}
       ${r.pix?'<span style="font-size:10px;color:var(--blue)">PIX</span>':''}
+      <span class="mi-del" onclick="openEditModalManualI(${i})" title="Editar" style="color:var(--purple);margin-right:4px">✎</span>
       <span class="mi-del" onclick="removeManualI(${i})" title="Remover">×</span>
     </div>`).join('');
 }
@@ -1691,6 +1693,7 @@ function excluirPagamento(idx){
 function openEditModal(idx){
   const r=allData[idx];
   if(!r)return;
+  document.getElementById('edit-source').value='allData';
   document.getElementById('edit-idx').value=idx;
   document.getElementById('edit-doc').value=r.doc||'';
   document.getElementById('edit-nome').value=decodeHTML(r.nome||'');
@@ -1702,21 +1705,93 @@ function openEditModal(idx){
   document.getElementById('edit-pix').value=r.pix||'';
   document.getElementById('edit-modal').style.display='flex';
 }
+function openEditModalManualI(idx){
+  const r=manualDataI[idx];
+  if(!r)return;
+  document.getElementById('edit-source').value='manualI';
+  document.getElementById('edit-idx').value=idx;
+  document.getElementById('edit-doc').value=r.doc||'';
+  document.getElementById('edit-nome').value=r.nome||'';
+  document.getElementById('edit-val').value=r.val?r.val.toFixed(2).replace('.',','):'';
+  document.getElementById('edit-banco').value=r.banco||'';
+  document.getElementById('edit-ag').value=r.ag||'';
+  document.getElementById('edit-conta').value=r.conta||'';
+  document.getElementById('edit-tipo').value=r.poup?'Poupança':'Corrente';
+  document.getElementById('edit-pix').value=r.pix||'';
+  document.getElementById('edit-modal').style.display='flex';
+}
+function openEditModalManualN(idx){
+  const r=manualDataN[idx];
+  if(!r)return;
+  document.getElementById('edit-source').value='manualN';
+  document.getElementById('edit-idx').value=idx;
+  document.getElementById('edit-doc').value=r.doc||'';
+  document.getElementById('edit-nome').value=r.nome||'';
+  document.getElementById('edit-val').value=r.val?r.val.toFixed(2).replace('.',','):'';
+  document.getElementById('edit-banco').value=r.banco||'';
+  document.getElementById('edit-ag').value=r.ag||'';
+  document.getElementById('edit-conta').value=r.conta||'';
+  document.getElementById('edit-tipo').value='Corrente';
+  document.getElementById('edit-pix').value=r.pix||'';
+  document.getElementById('edit-modal').style.display='flex';
+}
 function closeEditModal(){
   document.getElementById('edit-modal').style.display='none';
 }
 function saveEdit(){
+  const source=document.getElementById('edit-source').value;
   const idx=parseInt(document.getElementById('edit-idx').value);
-  if(isNaN(idx)||!allData[idx])return;
-  allData[idx].doc=document.getElementById('edit-doc').value.trim().replace(/[.\-\/\s]/g,'');
-  allData[idx].nome=document.getElementById('edit-nome').value.trim();
+  const newDoc=document.getElementById('edit-doc').value.trim().replace(/[.\-\/\s]/g,'');
+  const newNome=document.getElementById('edit-nome').value.trim();
   const newVal=parseFloat(document.getElementById('edit-val').value.trim().replace(',','.'));
+  const newBanco=document.getElementById('edit-banco').value.trim();
+  const newAg=document.getElementById('edit-ag').value.trim();
+  const newConta=document.getElementById('edit-conta').value.trim();
+  const newTipo=document.getElementById('edit-tipo').value;
+  const newPix=document.getElementById('edit-pix').value.trim();
+
+  if(source==='manualI'){
+    if(isNaN(idx)||!manualDataI[idx])return;
+    manualDataI[idx].doc=newDoc;
+    manualDataI[idx].nome=newNome;
+    if(!isNaN(newVal)&&newVal>0)manualDataI[idx].val=newVal;
+    manualDataI[idx].banco=newBanco;
+    manualDataI[idx].ag=newAg;
+    manualDataI[idx].conta=newConta;
+    manualDataI[idx].poup=(newTipo==='Poupança'||newTipo==='Salário')?'SIM':'';
+    manualDataI[idx].pix=newPix;
+    manualDataI[idx].tipo=newPix?'pix':'banco';
+    closeEditModal();
+    renderManualI();renderResumo();
+    showMsg('✓ Lançamento manual atualizado.');
+    return;
+  }
+
+  if(source==='manualN'){
+    if(isNaN(idx)||!manualDataN[idx])return;
+    manualDataN[idx].doc=newDoc;
+    manualDataN[idx].nome=newNome;
+    if(!isNaN(newVal)&&newVal>0)manualDataN[idx].val=newVal;
+    manualDataN[idx].banco=newBanco;
+    manualDataN[idx].ag=newAg;
+    manualDataN[idx].conta=newConta;
+    manualDataN[idx].pix=newPix;
+    manualDataN[idx].tipo=newPix?'pix':'banco';
+    closeEditModal();
+    renderManualN();renderResumo();
+    showMsg('✓ Lançamento manual NF atualizado.');
+    return;
+  }
+
+  if(isNaN(idx)||!allData[idx])return;
+  allData[idx].doc=newDoc;
+  allData[idx].nome=newNome;
   if(!isNaN(newVal)&&newVal>0)allData[idx].val=newVal;
-  allData[idx].banco=document.getElementById('edit-banco').value.trim();
-  allData[idx].ag=document.getElementById('edit-ag').value.trim();
-  allData[idx].conta=document.getElementById('edit-conta').value.trim();
-  allData[idx].tipo=document.getElementById('edit-tipo').value;
-  allData[idx].pix=document.getElementById('edit-pix').value.trim();
+  allData[idx].banco=newBanco;
+  allData[idx].ag=newAg;
+  allData[idx].conta=newConta;
+  allData[idx].tipo=newTipo;
+  allData[idx].pix=newPix;
   closeEditModal();
   renderInovah();renderNF();renderResumo();
   showMsg('✓ Registro atualizado.');
@@ -2374,6 +2449,7 @@ function renderManualN(){
       <span style="font-size:11px;color:var(--muted)">${r.banco} / ${r.ag} / ${r.conta}</span>
       ${r.freq?'<span class="badge b-sem" style="font-size:10px">'+r.freq.charAt(0)+r.freq.slice(1).toLowerCase()+'</span>':''}
       ${r.pix?'<span style="font-size:10px;color:var(--blue)">PIX</span>':''}
+      <span class="mi-del" onclick="openEditModalManualN(${i})" title="Editar" style="color:var(--purple);margin-right:4px">✎</span>
       <span class="mi-del" onclick="removeManualN(${i})" title="Remover">×</span>
     </div>`).join('');
 }
